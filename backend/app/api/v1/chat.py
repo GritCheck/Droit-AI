@@ -5,14 +5,12 @@ Chat API endpoints with Answer & Cite orchestrator
 import logging
 import uuid
 import time
-from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.models.chat import (
     ChatRequest, 
     ChatResponse, 
-    ConversationHistory,
     MessageFeedback,
     ChatHealthCheck
 )

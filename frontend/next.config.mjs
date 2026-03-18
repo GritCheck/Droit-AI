@@ -28,6 +28,7 @@ const nextConfig = {
 
     return config;
   },
+  turbopack: {},
   ...(isStaticExport === 'true' && {
     output: 'export',
   }),

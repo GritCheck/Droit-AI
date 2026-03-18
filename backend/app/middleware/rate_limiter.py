@@ -4,7 +4,6 @@ Implements token bucket and sliding window rate limiting
 """
 
 import time
-import asyncio
 import logging
 from typing import Dict, Optional, Tuple
 from dataclasses import dataclass

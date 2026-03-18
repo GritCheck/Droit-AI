@@ -4,15 +4,16 @@ Handles uploads to Azure Data Lake Storage with metadata and indexing
 """
 
 import logging
+import re
 import uuid
 import magic
 import hashlib
 from datetime import datetime
 from typing import List, Optional
-from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
 
-from app.services.parser_service import ParserFactory, DocumentChunk, get_parser_service
+from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status
+
+from app.services.parser_service import ParserFactory, DocumentChunk
 from app.services.search_service import GovernedSearchService
 from app.core.config import get_settings
 
@@ -40,7 +41,7 @@ MIN_FILE_SIZE = 100  # 100 bytes
 
 DANGEROUS_EXTENSIONS = {
     '.exe', '.bat', '.cmd', '.com', '.pif', '.scr', '.vbs', '.js', '.jar',
-    '.app', '.deb', '.pkg', '.dmg', '.rpm', '.deb', '.msi', '.msm', '.msp'
+    '.app', '.deb', '.pkg', '.dmg', '.rpm', '.msi', '.msm', '.msp'
 }
 
 # Azure Data Lake Storage client (lazy initialization)
@@ -247,7 +248,6 @@ async def ingest_document(
         )
     
     # Step 8: Validate group ID format (UUID or alphanumeric)
-    import re
     group_id_pattern = re.compile(r'^[a-zA-Z0-9\-_]{1,50}$')
     for group_id in allowed_groups:
         if not group_id_pattern.match(group_id):
@@ -291,12 +291,14 @@ async def ingest_document(
         indexed_count = await _index_chunks(search_service, chunks)
         
         # Log successful ingestion
-        logger.info(f"Successfully ingested {file.filename}: "
-                   f"{len(chunks)} chunks indexed, "
-                   f"parser: {parser_mode}, "
-                   f"mime_type: {detected_mime_type}, "
-                   f"file_size: {len(content)}, "
-                   f"groups: {allowed_groups}")
+        logger.info(
+            f"Successfully ingested {file.filename}: "
+            f"{len(chunks)} chunks indexed, "
+            f"parser: {parser_mode}, "
+            f"mime_type: {detected_mime_type}, "
+            f"file_size: {len(content)}, "
+            f"groups: {allowed_groups}"
+        )
         
         return {
             "status": "success",
@@ -323,9 +325,9 @@ async def ingest_document(
 
 
 async def _upload_to_data_lake(
-    file: UploadFile, 
-    doc_id: str, 
-    allowed_groups: List[str], 
+    file: UploadFile,
+    doc_id: str,
+    allowed_groups: List[str],
     ingestion_timestamp: str,
     use_local_parsing: bool,
     title: Optional[str],
@@ -339,7 +341,6 @@ async def _upload_to_data_lake(
         file_system_client = get_adls_client()
         
         # Create unique file path
-        file_extension = file.filename.split(".")[-1] if "." in file.filename else ""
         safe_filename = f"{doc_id}_{file.filename}"
         file_path = f"documents/{safe_filename}"
         
@@ -423,8 +424,8 @@ async def get_parser_status():
         "local_parsing_enabled": settings.enable_local_parsing,
         "azure_doc_intelligence_enabled": settings.enable_azure_doc_intelligence,
         "supported_formats": {
-            "local": DoclingParser().get_supported_formats() if ParserFactory.get_available_parsers()["docling"] else [],
-            "azure": AzureDocumentIntelligenceParser().get_supported_formats() if ParserFactory.get_available_parsers()["azure_document_intelligence"] else []
+            "local": DoclingParser().get_supported_formats() if ParserFactory.get_available_parsers().get("docling") else [],
+            "azure": AzureDocumentIntelligenceParser().get_supported_formats() if ParserFactory.get_available_parsers().get("azure_document_intelligence") else []
         }
     }
 
@@ -485,7 +486,11 @@ async def test_parsing(
             "chunks_created": len(chunks),
             "sample_chunks": [
                 {
-                    "content": chunk.content[:200] + "..." if len(chunk.content) > 200 else chunk.content,
+                    "content": (
+                        chunk.content[:200] + "..."
+                        if len(chunk.content) > 200
+                        else chunk.content
+                    ),
                     "metadata": chunk.metadata
                 }
                 for chunk in chunks[:3]  # Return first 3 chunks as sample

@@ -3,11 +3,9 @@ Governed Search Service for Sentinel RAG
 Implements hybrid search with security filtering and OBO token validation
 """
 
-import os
 import logging
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
-import asyncio
 from datetime import datetime
 
 from azure.identity.aio import OnBehalfOfCredential, DefaultAzureCredential
@@ -163,13 +161,6 @@ class GovernedSearchService:
     def _extract_security_clearance(self, user_data: Dict, group_ids: List[str]) -> str:
         """Extract security clearance from user groups and attributes"""
         # Map Azure AD groups to security clearances
-        clearance_mapping = {
-            # Group ID -> Clearance Level
-            'executive-access': 'top-secret',
-            'management-access': 'secret',
-            'employee-access': 'confidential',
-            'contractor-access': 'restricted'
-        }
         
         # Check user's department and title for default clearance
         department = user_data.get('department', '').lower()

@@ -9,8 +9,7 @@ import time
 from typing import Dict, Any, Optional
 from datetime import datetime
 from enum import Enum
-from fastapi import Request, HTTPException
-from starlette.responses import Response
+from fastapi import Request
 
 from app.core.config import get_settings
 
