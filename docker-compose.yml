@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # Azure AD Configuration (NEXT_PUBLIC_ for client-side access)
+      - NEXT_PUBLIC_AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - NEXT_PUBLIC_AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      # Application Configuration
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-dev-secret-key}
+      - BACKEND_URL=http://backend:8000
+      # Feature toggles
+      - NEXT_PUBLIC_ENABLE_LOCAL_PARSING=${ENABLE_LOCAL_PARSING:-false}
+    depends_on:
+      - backend
+      - redis
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - rag-network
+    restart: unless-stopped
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      # Azure OBO Flow Configuration
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      
+      # Azure AI Search Configuration
+      - AZURE_SEARCH_ENDPOINT=${AZURE_SEARCH_ENDPOINT}
+      - AZURE_SEARCH_INDEX_NAME=${AZURE_SEARCH_INDEX_NAME:-rag-index}
+      
+      # Azure OpenAI Configuration
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_OPENAI_DEPLOYMENT_NAME=${AZURE_OPENAI_DEPLOYMENT_NAME:-gpt-4}
+      - AZURE_OPENAI_EMBEDDING_DEPLOYMENT=${AZURE_OPENAI_EMBEDDING_DEPLOYMENT:-text-embedding-ada-002}
+      
+      # Azure Document Intelligence Configuration
+      - AZURE_DOC_INTELLIGENCE_ENDPOINT=${AZURE_DOC_INTELLIGENCE_ENDPOINT}
+      - AZURE_DOC_INTELLIGENCE_KEY=${AZURE_DOC_INTELLIGENCE_KEY}
+      
+      # Azure Cosmos DB Configuration (Optional)
+      - COSMOS_DB_ENDPOINT=${COSMOS_DB_ENDPOINT}
+      - COSMOS_DB_KEY=${COSMOS_DB_KEY}
+      - COSMOS_DB_DATABASE_NAME=${COSMOS_DB_DATABASE_NAME:-rag-chat}
+      - COSMOS_DB_CONTAINER_NAME=${COSMOS_DB_CONTAINER_NAME:-chat-history}
+      
+      # Feature Toggles
+      - ENABLE_LOCAL_PARSING=${ENABLE_LOCAL_PARSING:-false}
+      - LOCAL_DOCS_PATH=/app/data/raw
+      
+      # Development Configuration
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=true
+      - LOG_LEVEL=debug
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+    networks:
+      - rag-network
+    restart: unless-stopped
+    # Security: Run as non-root user
+    user: "1000:1000"
+
+  # Redis for session state and caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis123}
+    volumes:
+      - redis_data:/data
+    networks:
+      - rag-network
+    restart: unless-stopped
+    # Security: Run as non-root user
+    user: "999:999"
+
+  # Azure Cosmos DB Emulator (Optional - for local development)
+  cosmos-emulator:
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+    ports:
+      - "8081:8081"
+      - "10250:10250"
+      - "10251:10251"
+      - "10252:10252"
+      - "10253:10253"
+      - "10254:10254"
+    environment:
+      - AZURE_COSMOS_EMULATOR_PARTITION_COUNT=3
+      - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true
+    volumes:
+      - cosmos_data:/data/db
+    networks:
+      - rag-network
+    restart: unless-stopped
+    # Only start if COSMOS_DB_EMULATOR is set to true
+    profiles:
+      - cosmos-emulator
+
+volumes:
+  redis_data:
+  cosmos_data:
+
+networks:
+  rag-network:
+    driver: bridge

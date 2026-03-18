@@ -1,0 +1,53 @@
+# Development Dockerfile - optimized for hot reload and debugging
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+FROM python:3.11-slim
+
+# Set environment variables for development
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    DEBUG=true
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Document processing dependencies
+    libgomp1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    poppler-utils \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    # Development tools
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r raguser && \
+    useradd -r -g raguser -d /app -s /bin/bash raguser
+
+# Create app directory
+RUN mkdir -p /app && chown raguser:raguser /app
+WORKDIR /app
+
+# Install Python dependencies (will be mounted as volume)
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# Create cache directories
+RUN mkdir -p /app/cache/models /app/cache/documents /app/logs && \
+    chown -R raguser:raguser /app/cache /app/logs
+
+# Switch to non-root user
+USER raguser
+
+# Expose port
+EXPOSE 8000
+
+# Development entrypoint (will be overridden by docker-compose)
+ENTRYPOINT ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
