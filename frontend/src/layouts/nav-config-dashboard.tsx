@@ -87,7 +87,7 @@ export const navData: NavSectionProps['data'] = [
       },
       {
         title: 'Document Library',
-        path: paths.dashboard.documents.root, // Updated from package to documents
+        path: paths.dashboard.documents.list, // Updated from package to documents
         icon: ICONS.file,
         children: [
           { title: 'All Documents', path: paths.dashboard.documents.list },
@@ -114,7 +114,7 @@ export const navData: NavSectionProps['data'] = [
       },
       {
         title: 'System Settings',
-        path: paths.dashboard.user.account,
+        path: paths.dashboard.settings,
         icon: ICONS.parameter,
       },
     ],

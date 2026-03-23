@@ -20,6 +20,11 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 const NAV_ITEMS = [
   {
+    label: 'Settings',
+    icon: <Iconify width={24} icon="solar:settings-bold" />,
+    href: paths.dashboard.settings,
+  },
+  {
     label: 'General',
     icon: <Iconify width={24} icon="solar:user-id-bold" />,
     href: paths.dashboard.user.account,

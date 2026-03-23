@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 
 import { CONFIG } from 'src/global-config';
 
-import { VoucherListView } from 'src/sections/voucher/view';
+import { AccountGeneralView } from 'src/sections/account/view';
 
 // ----------------------------------------------------------------------
 
-export const metadata: Metadata = { title: `Package list | Dashboard - ${CONFIG.appName}` };
+export const metadata: Metadata = {
+  title: `System Settings | Dashboard - ${CONFIG.appName}`,
+};
 
 export default function Page() {
-  return <VoucherListView />;
+  return <AccountGeneralView />;
 }

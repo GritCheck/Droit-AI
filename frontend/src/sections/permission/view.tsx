@@ -16,7 +16,6 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { useMockedUser } from 'src/auth/hooks';
-import { RoleBasedGuard } from 'src/auth/guard';
 
 // ----------------------------------------------------------------------
 
@@ -34,11 +33,22 @@ export function PermissionDeniedView() {
     []
   );
 
+  const securityGroups = [
+    { title: "HR & Benefits", subheader: "Azure AD Group: hr-all-staff", filter: "Entitlement Filter: (security_group eq 'HR') and (clearance_level ge 2). This group grants read access to employee records and benefits administration." },
+    { title: "Legal & Contracts", subheader: "Azure AD Group: legal-exec", filter: "Entitlement Filter: (security_group eq 'Legal') and (clearance_level ge 4). This group grants read access to all legal archives and binding contracts." },
+    { title: "Financial Audits", subheader: "Azure AD Group: finance-mgr", filter: "Entitlement Filter: (security_group eq 'Finance') and (clearance_level ge 3). This group grants access to financial statements and audit reports." },
+    { title: "Operational SOPs", subheader: "Azure AD Group: ops-field", filter: "Entitlement Filter: (security_group eq 'Operations') and (clearance_level ge 2). This group grants access to standard operating procedures and field guides." },
+    { title: "Clinical Data", subheader: "Azure AD Group: medical-vetted", filter: "Entitlement Filter: (security_group eq 'Clinical') and (clearance_level ge 5). This group grants access to patient data and clinical research with HIPAA compliance." },
+    { title: "Internal Strategy", subheader: "Azure AD Group: board-only", filter: "Entitlement Filter: (security_group eq 'Strategy') and (clearance_level ge 6). This group grants access to board-level strategic planning and confidential initiatives." },
+    { title: "Public Relations", subheader: "Azure AD Group: external-comm", filter: "Entitlement Filter: (security_group eq 'Communications') and (clearance_level ge 3). This group grants access to press releases and external communications." },
+    { title: "Research & Development", subheader: "Azure AD Group: rnd-team", filter: "Entitlement Filter: (security_group eq 'R&D') and (clearance_level ge 4). This group grants access to proprietary research and development documentation." },
+  ];
+
   return (
     <DashboardContent>
       <CustomBreadcrumbs
-        heading="Permission"
-        links={[{ name: 'Dashboard', href: paths.dashboard.root }, { name: 'Permission' }]}
+        heading="Security Groups & RLS"
+        links={[{ name: 'Dashboard', href: paths.dashboard.root }, { name: 'Access Control' }]}
         sx={{ mb: { xs: 3, md: 5 } }}
       />
       <ToggleButtonGroup
@@ -48,29 +58,38 @@ export function PermissionDeniedView() {
         onChange={handleChangeRole}
         sx={{ mb: 5, alignSelf: 'center' }}
       >
-        <ToggleButton value="admin" aria-label="Admin role">
-          Admin role
+        <ToggleButton value="admin" aria-label="Tier 1: Global Admin (Full Access)">
+          Tier 1: Global Admin (Full Access)
         </ToggleButton>
-        <ToggleButton value="user" aria-label="User role">
-          User role
+        <ToggleButton value="auditor" aria-label="Tier 2: Compliance Auditor">
+          Tier 2: Compliance Auditor
+        </ToggleButton>
+        <ToggleButton value="user" aria-label="Tier 3: Departmental (Restricted Access)">
+          Tier 3: Departmental (Restricted Access)
         </ToggleButton>
       </ToggleButtonGroup>
 
-      <RoleBasedGuard hasContent currentRole={user?.role} acceptRoles={[role]} sx={{ py: 10 }}>
+      {typeof role !== 'undefined' && (user?.role === role || role === 'admin') ? (
         <Box sx={{ gap: 3, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-          {Array.from({ length: 8 }, (_, index) => (
+          {securityGroups.map((group, index) => (
             <Card key={index}>
-              <CardHeader title={`Card ${index + 1}`} subheader="Proin viverra ligula" />
-
+              <CardHeader title={group.title} subheader={group.subheader} />
               <Typography variant="body2" sx={{ px: 3, py: 2, color: 'text.secondary' }}>
-                Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. In enim justo,
-                rhoncus ut, imperdiet a, venenatis vitae, justo. Vestibulum fringilla pede sit amet
-                augue.
+                {group.filter}
               </Typography>
             </Card>
           ))}
         </Box>
-      </RoleBasedGuard>
+      ) : (
+        <Box sx={{ textAlign: 'center', py: 10 }}>
+          <Typography variant="h4" sx={{ mb: 2, color: 'error.main' }}>
+            Insufficient Clearance Level
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+            RLS Policy &apos;deny_all_external&apos; is active.
+          </Typography>
+        </Box>
+      )}
     </DashboardContent>
   );
 }
