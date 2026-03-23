@@ -45,212 +45,78 @@ const ICONS = {
 
 export const navData: NavSectionProps['data'] = [
   /**
-   * Overview
+   * Core Intelligence
    */
   {
-    subheader: 'Overview',
+    subheader: 'Intelligence',
     items: [
-      { title: 'Dashboard', path: paths.dashboard.root, icon: ICONS.dashboard },
-      // { title: 'Ecommerce', path: paths.dashboard.general.ecommerce, icon: ICONS.ecommerce },
-      // { title: 'Analytics', path: paths.dashboard.general.analytics, icon: ICONS.analytics },
-      // { title: 'Banking', path: paths.dashboard.general.banking, icon: ICONS.banking },
-      // { title: 'Booking', path: paths.dashboard.general.booking, icon: ICONS.booking },
-      // { title: 'File', path: paths.dashboard.general.file, icon: ICONS.file },
-      // { title: 'Course', path: paths.dashboard.general.course, icon: ICONS.course },
+      { 
+        title: 'Overview', 
+        path: paths.dashboard.root, 
+        icon: ICONS.dashboard,
+        caption: 'System health & Azure status' 
+      },
+      { 
+        title: 'Governed Chat', 
+        path: paths.dashboard.chat, // Reuse Chat page for RAG
+        icon: ICONS.chat,
+        info: 'SECURE' 
+      },
+      { 
+        title: 'Enterprise Search', 
+        path: paths.dashboard.general.analytics, // Reuse Analytics layout for Hybrid Search
+        icon: ICONS.analytics 
+      },
     ],
   },
   /**
-   * Management
+   * Data & Ingestion
    */
   {
-    subheader: 'Management',
+    subheader: 'Knowledge Management',
     items: [
       {
-        title: 'Customers',
-        path: paths.dashboard.customer.root,
-        icon: ICONS.user,
+        title: 'Ingestion Pipeline',
+        path: paths.dashboard.general.file, // Reuse File Manager for uploads
+        icon: ICONS.folder,
         children: [
-          // { title: 'Profile', path: paths.dashboard.user.root },
-          // { title: 'Cards', path: paths.dashboard.user.cards },
-          { title: 'Summary', path: paths.dashboard.customer.root },
-          { title: 'List', path: paths.dashboard.customer.list },
-          // { title: 'Create', path: paths.dashboard.user.new },
-          // { title: 'Edit', path: paths.dashboard.customer.demo.edit },
-          // { title: 'Account', path: paths.dashboard.customer.account },
+          { title: 'Upload & Index', path: paths.dashboard.general.file },
+          { title: 'ADLS Gen2 Storage', path: '#adls-link' },
+          { title: 'Processing Logs', path: '#logs' },
         ],
       },
       {
-        title: 'Equipment',
-        path: paths.dashboard.equipment.root,
-        icon: ICONS.user,
-        children: [
-          { title: 'Profile', path: paths.dashboard.equipment.root },
-          { title: 'All', path: paths.dashboard.equipment.cards },
-          { title: 'List', path: paths.dashboard.equipment.list },
-          { title: 'Create', path: paths.dashboard.equipment.new },
-          // { title: 'Edit', path: paths.dashboard.equipment.demo.edit },
-          // { title: 'Account', path: paths.dashboard.equipment.account },
-        ],
-      },
-      
-    ],
-  },
-  {
-    subheader: 'Management',
-    items: [
-      {
-        title: 'Support',
-        path: paths.dashboard.user.root,
-        icon: ICONS.user,
-        children: [
-          { title: 'Profile', path: paths.dashboard.user.root },
-          { title: 'Cards', path: paths.dashboard.user.cards },
-          { title: 'List', path: paths.dashboard.user.list },
-          { title: 'Create', path: paths.dashboard.user.new },
-          { title: 'Edit', path: paths.dashboard.user.demo.edit },
-          { title: 'Account', path: paths.dashboard.user.account },
-        ],
-      },
-      {
-        title: 'Tickets',
-        path: paths.dashboard.user.root,
-        icon: ICONS.user,
-        children: [
-          { title: 'Profile', path: paths.dashboard.user.root },
-          { title: 'Cards', path: paths.dashboard.user.cards },
-          { title: 'List', path: paths.dashboard.user.list },
-          { title: 'Create', path: paths.dashboard.user.new },
-          { title: 'Edit', path: paths.dashboard.user.demo.edit },
-          { title: 'Account', path: paths.dashboard.user.account },
-        ],
-      },
-      {
-        title: 'Payments',
-        path: paths.dashboard.payment.root,
-        icon: ICONS.user,
-        children: [
-          { title: 'Overview', path: paths.dashboard.payment.root },
-          { title: 'Cards', path: paths.dashboard.payment.cards },
-          { title: 'List', path: paths.dashboard.payment.list },
-          { title: 'Create', path: paths.dashboard.payment.new },
-          { title: 'Edit', path: paths.dashboard.payment.demo.edit },
-          { title: 'Account', path: paths.dashboard.payment.account },
-        ],
-      },
-    ],
-  },
-  {
-    subheader: 'Management',
-    items: [
-      {
-        title: 'Packages',
-        path: paths.dashboard.package.root,
+        title: 'Document Library',
+        path: paths.dashboard.package.root, // Reuse "Packages" for document sets
         icon: ICONS.file,
         children: [
-          { title: 'All', path: paths.dashboard.package.cards },
-          { title: 'List', path: paths.dashboard.package.list },
-        ],
-      },
-      {
-        title: 'Vouchers',
-        path: paths.dashboard.voucher.root,
-        icon: ICONS.user,
-        children: [
-          { title: 'Overview', path: paths.dashboard.voucher.root },
-          { title: 'List', path: paths.dashboard.voucher.list },
-          // { title: 'Create', path: paths.dashboard.voucher.new },
-          // { title: 'Edit', path: paths.dashboard.voucher.demo.edit },
-          // { title: 'Account', path: paths.dashboard.voucher.account },
+          { title: 'All Documents', path: paths.dashboard.package.list },
+          { title: 'Security Groups', path: paths.dashboard.permission }, // Reuse Permission guard
         ],
       },
     ],
   },
-  // /**
-  //  * Item State
-  //  */
-  // {
-  //   subheader: 'Misc',
-  //   items: [
-  //     {
-  //       // default roles : All roles can see this entry.
-  //       // roles: ['user'] Only users can see this item.
-  //       // roles: ['admin'] Only admin can see this item.
-  //       // roles: ['admin', 'manager'] Only admin/manager can see this item.
-  //       // Reference from 'src/guards/RoleBasedGuard'.
-  //       title: 'Permission',
-  //       path: paths.dashboard.permission,
-  //       icon: ICONS.lock,
-  //       roles: ['admin', 'manager'],
-  //       caption: 'Only admin can see this item',
-  //     },
-  //     {
-  //       title: 'Level',
-  //       path: '#/dashboard/menu_level',
-  //       icon: ICONS.menuItem,
-  //       children: [
-  //         {
-  //           title: 'Level 1a',
-  //           path: '#/dashboard/menu_level/menu_level_1a',
-  //           children: [
-  //             { title: 'Level 2a', path: '#/dashboard/menu_level/menu_level_1a/menu_level_2a' },
-  //             {
-  //               title: 'Level 2b',
-  //               path: '#/dashboard/menu_level/menu_level_1a/menu_level_2b',
-  //               children: [
-  //                 {
-  //                   title: 'Level 3a',
-  //                   path: '#/dashboard/menu_level/menu_level_1a/menu_level_2b/menu_level_3a',
-  //                 },
-  //                 {
-  //                   title: 'Level 3b',
-  //                   path: '#/dashboard/menu_level/menu_level_1a/menu_level_2b/menu_level_3b',
-  //                 },
-  //               ],
-  //             },
-  //           ],
-  //         },
-  //         { title: 'Level 1b', path: '#/dashboard/menu_level/menu_level_1b' },
-  //       ],
-  //     },
-  //     {
-  //       title: 'Disabled',
-  //       path: '#disabled',
-  //       icon: ICONS.disabled,
-  //       disabled: true,
-  //     },
-  //     {
-  //       title: 'Label',
-  //       path: '#label',
-  //       icon: ICONS.label,
-  //       info: (
-  //         <Label
-  //           color="info"
-  //           variant="inverted"
-  //           startIcon={<Iconify icon="solar:bell-bing-bold-duotone" />}
-  //         >
-  //           NEW
-  //         </Label>
-  //       ),
-  //     },
-  //     {
-  //       title: 'Caption',
-  //       path: '#caption',
-  //       icon: ICONS.menuItem,
-  //       caption:
-  //         'Quisque malesuada placerat nisl. In hac habitasse platea dictumst. Cras id dui. Pellentesque commodo eros a enim. Morbi mollis tellus ac sapien.',
-  //     },
-  //     {
-  //       title: 'Params',
-  //       path: '/dashboard/params?id=e99f09a7-dd88-49d5-b1c8-1daf80c2d7b1',
-  //       icon: ICONS.parameter,
-  //     },
-  //     {
-  //       title: 'External link',
-  //       path: 'https://www.google.com/',
-  //       icon: ICONS.external,
-  //       info: <Iconify width={18} icon="prime:external-link" />,
-  //     },
-  //     { title: 'Blank', path: paths.dashboard.blank, icon: ICONS.blank },
-  //   ],
-  // },
+  /**
+   * Governance & Trust
+   */
+  {
+    subheader: 'Governance',
+    items: [
+      {
+        title: 'Responsible AI',
+        path: paths.dashboard.general.banking, // Reuse Banking for "Financial/Compliance" feel
+        icon: ICONS.lock,
+        children: [
+          { title: 'AI Studio Metrics', path: '#metrics' },
+          { title: 'Content Safety', path: '#safety' },
+          { title: 'Audit Trail', path: paths.dashboard.invoice.root }, // Reuse Invoices for Audit logs
+        ],
+      },
+      {
+        title: 'System Settings',
+        path: paths.dashboard.user.account,
+        icon: ICONS.parameter,
+      },
+    ],
+  },
 ];
