@@ -22,13 +22,13 @@ export function PackageCardsView() {
         heading="Package cards"
         links={[
           { name: 'Dashboard', href: paths.dashboard.root },
-          { name: 'Packages', href: paths.dashboard.package.root },
+          { name: 'Packages', href: paths.dashboard.document.root },
           { name: 'Cards' },
         ]}
         action={
           <Button
             component={RouterLink}
-            href={paths.dashboard.package.new}
+            href={paths.dashboard.document.new}
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
           >

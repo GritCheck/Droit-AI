@@ -87,10 +87,10 @@ export const navData: NavSectionProps['data'] = [
       },
       {
         title: 'Document Library',
-        path: paths.dashboard.package.root, // Reuse "Packages" for document sets
+        path: paths.dashboard.documents.root, // Updated from package to documents
         icon: ICONS.file,
         children: [
-          { title: 'All Documents', path: paths.dashboard.package.list },
+          { title: 'All Documents', path: paths.dashboard.documents.list },
           { title: 'Security Groups', path: paths.dashboard.permission }, // Reuse Permission guard
         ],
       },

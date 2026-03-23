@@ -47,7 +47,7 @@ export function OverviewFileView() {
   const handleCreateNewFolder = useCallback(() => {
     newFolderDialog.onFalse();
     setFolderName('');
-    console.info('CREATE NEW FOLDER');
+    console.info('CREATE NEW DOMAIN');
   }, [newFolderDialog]);
 
   const handleDrop = useCallback(
@@ -63,30 +63,30 @@ export function OverviewFileView() {
       chart={{ series: 76 }}
       data={[
         {
-          name: 'Images',
+          name: 'Legal Docs',
           usedStorage: GB / 2,
           filesCount: 223,
-          icon: <Box component="img" src={`${CONFIG.assetsDir}/assets/icons/files/ic-img.svg`} />,
+          icon: <Box component="img" src={`${CONFIG.assetsDir}/assets/icons/files/ic-legal.svg`} />,
         },
         {
-          name: 'Media',
+          name: 'Clinical Data',
           usedStorage: GB / 5,
           filesCount: 223,
-          icon: <Box component="img" src={`${CONFIG.assetsDir}/assets/icons/files/ic-video.svg`} />,
+          icon: <Box component="img" src={`${CONFIG.assetsDir}/assets/icons/files/ic-clinical.svg`} />,
         },
         {
-          name: 'Documents',
+          name: 'Standard Operating Procedures (SOPs)',
           usedStorage: GB / 5,
           filesCount: 223,
           icon: (
-            <Box component="img" src={`${CONFIG.assetsDir}/assets/icons/files/ic-document.svg`} />
+            <Box component="img" src={`${CONFIG.assetsDir}/assets/icons/files/ic-sop.svg`} />
           ),
         },
         {
-          name: 'Other',
+          name: 'Technical Specs',
           usedStorage: GB / 10,
           filesCount: 223,
-          icon: <Box component="img" src={`${CONFIG.assetsDir}/assets/icons/files/ic-file.svg`} />,
+          icon: <Box component="img" src={`${CONFIG.assetsDir}/assets/icons/files/ic-tech.svg`} />,
         },
       ]}
     />
@@ -100,7 +100,7 @@ export function OverviewFileView() {
     <FileManagerNewFolderDialog
       open={newFolderDialog.value}
       onClose={newFolderDialog.onFalse}
-      title="New Folder"
+      title="Domain Configuration"
       folderName={folderName}
       onChangeFolderName={handleChangeFolderName}
       onCreate={handleCreateNewFolder}
@@ -110,6 +110,10 @@ export function OverviewFileView() {
   return (
     <>
       <DashboardContent maxWidth="xl">
+        <Typography variant="h4" sx={{ mb: { xs: 3, md: 5 } }}>
+          Knowledge Ingestion Pipeline 📥
+        </Typography>
+        
         <Grid container spacing={3}>
           <Grid sx={{ display: { xs: 'block', sm: 'none' } }} size={12}>
             {renderStorageOverview()}
@@ -117,43 +121,43 @@ export function OverviewFileView() {
 
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <FileWidget
-              title="Dropbox"
+              title="Azure Data Lake (ADLS)"
               value={GB / 10}
               total={GB}
-              icon={`${CONFIG.assetsDir}/assets/icons/apps/ic-app-dropbox.svg`}
+              icon={`${CONFIG.assetsDir}/assets/icons/apps/ic-app-azure.svg`}
             />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <FileWidget
-              title="Drive"
+              title="Local Ingest (Docling)"
               value={GB / 5}
               total={GB}
-              icon={`${CONFIG.assetsDir}/assets/icons/apps/ic-app-drive.svg`}
+              icon={`${CONFIG.assetsDir}/assets/icons/apps/ic-app-docling.svg`}
             />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <FileWidget
-              title="OneDrive"
+              title="Azure AI Search Index"
               value={GB / 2}
               total={GB}
-              icon={`${CONFIG.assetsDir}/assets/icons/apps/ic-app-onedrive.svg`}
+              icon={`${CONFIG.assetsDir}/assets/icons/apps/ic-app-search.svg`}
             />
           </Grid>
 
           <Grid size={{ xs: 12, md: 6, lg: 8 }}>
             <FileDataActivity
-              title="Data activity"
+              title="Indexing Activity"
               chart={{
                 series: [
                   {
                     name: 'Weekly',
                     categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
                     data: [
-                      { name: 'Images', data: [20, 34, 48, 65, 37] },
-                      { name: 'Media', data: [10, 34, 13, 26, 27] },
-                      { name: 'Documents', data: [10, 14, 13, 16, 17] },
+                      { name: 'Successful Indexing', data: [20, 34, 48, 65, 37] },
+                      { name: 'In-Progress', data: [10, 34, 13, 26, 27] },
+                      { name: 'Safety Flagged', data: [5, 12, 6, 7, 8] },
                       { name: 'Other', data: [5, 12, 6, 7, 8] },
                     ],
                   },
@@ -161,9 +165,9 @@ export function OverviewFileView() {
                     name: 'Monthly',
                     categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
                     data: [
-                      { name: 'Images', data: [10, 34, 13, 56, 77, 88, 99, 77, 45, 12, 43, 34] },
-                      { name: 'Media', data: [10, 34, 13, 56, 77, 88, 99, 77, 45, 12, 43, 34] },
-                      { name: 'Documents', data: [10, 34, 13, 56, 77, 88, 99, 77, 45, 12, 43, 34] },
+                      { name: 'Successful Indexing', data: [10, 34, 13, 56, 77, 88, 99, 77, 45, 12, 43, 34] },
+                      { name: 'In-Progress', data: [10, 34, 13, 56, 77, 88, 99, 77, 45, 12, 43, 34] },
+                      { name: 'Safety Flagged', data: [10, 34, 13, 56, 77, 88, 99, 77, 45, 12, 43, 34] },
                       { name: 'Other', data: [10, 34, 13, 56, 77, 88, 99, 77, 45, 12, 43, 34] },
                     ],
                   },
@@ -171,9 +175,9 @@ export function OverviewFileView() {
                     name: 'Yearly',
                     categories: ['2018', '2019', '2020', '2021', '2022', '2023'],
                     data: [
-                      { name: 'Images', data: [24, 34, 32, 56, 77, 48] },
-                      { name: 'Media', data: [24, 34, 32, 56, 77, 48] },
-                      { name: 'Documents', data: [24, 34, 32, 56, 77, 48] },
+                      { name: 'Successful Indexing', data: [24, 34, 32, 56, 77, 48] },
+                      { name: 'In-Progress', data: [24, 34, 32, 56, 77, 48] },
+                      { name: 'Safety Flagged', data: [24, 34, 32, 56, 77, 48] },
                       { name: 'Other', data: [24, 34, 32, 56, 77, 48] },
                     ],
                   },
@@ -183,8 +187,8 @@ export function OverviewFileView() {
 
             <Box sx={{ mt: 5 }}>
               <FileManagerPanel
-                title="Folders"
-                link={paths.dashboard.fileManager}
+                title="Knowledge Domains"
+                link={paths.dashboard.documents.root}
                 onOpen={newFolderDialog.onTrue}
               />
 
@@ -207,8 +211,8 @@ export function OverviewFileView() {
               </Scrollbar>
 
               <FileManagerPanel
-                title="Recent files"
-                link={paths.dashboard.fileManager}
+                title="Recently Indexed Knowledge"
+                link={paths.dashboard.documents.root}
                 onOpen={newFilesDialog.onTrue}
               />
 
@@ -234,12 +238,13 @@ export function OverviewFileView() {
                       gap: 0.5,
                       display: 'flex',
                       alignItems: 'center',
-                      color: 'text.disabled',
-                      flexDirection: 'column',
+                      color: 'text.secondary',
                     }}
                   >
-                    <Iconify icon="eva:cloud-upload-fill" width={40} />
-                    <Typography variant="body2">Upload file</Typography>
+                    <Iconify icon="solar:cloud-upload-bold" width={24} />
+                    <Typography variant="body2">
+                      Drop documents here for Azure-governed indexing (PDF, DOCX, XLSX)
+                    </Typography>
                   </Box>
                 }
                 sx={{
@@ -252,7 +257,10 @@ export function OverviewFileView() {
 
               <Box sx={{ display: { xs: 'none', sm: 'block' } }}>{renderStorageOverview()}</Box>
 
-              <FileUpgrade />
+              <FileUpgrade 
+                title="Pipeline Status"
+                description="Azure Document Intelligence is active. All documents are being processed with layout-aware optimization."
+              />
             </Box>
           </Grid>
         </Grid>

@@ -1,4 +1,4 @@
-import type { IVoucherCard } from 'src/types/voucher';
+import type { IDocumentItem } from 'src/types/document';
 
 import { z as zod } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -18,7 +18,7 @@ import { Form, Field } from 'src/components/hook-form';
 
 // ----------------------------------------------------------------------
 
-export const NewVoucherSchema = zod.object({
+export const NewDocumentSchema = zod.object({
   name: zod.string().min(1, 'Name is required'),
   type: zod.string().min(1, 'Type is required'),
   data_limit: zod.string().min(1, 'Data limit is required'),
@@ -33,19 +33,19 @@ export const NewVoucherSchema = zod.object({
   description: zod.string().optional(),
 });
 
-export type NewVoucherSchemaType = zod.infer<typeof NewVoucherSchema>;
+export type NewDocumentSchemaType = zod.infer<typeof NewDocumentSchema>;
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  currentVoucher?: IVoucherCard;
+  currentDocument?: IDocumentItem;
 };
 
-export function VoucherNewEditForm({ currentVoucher }: Props) {
+export function DocumentNewEditForm({ currentDocument }: Props) {
   const router = useRouter();
 
-  const methods = useForm<NewVoucherSchemaType>({
-    resolver: zodResolver(NewVoucherSchema),
+  const methods = useForm<NewDocumentSchemaType>({
+    resolver: zodResolver(NewDocumentSchema),
     defaultValues: {
       name: '',
       type: '',
@@ -53,12 +53,13 @@ export function VoucherNewEditForm({ currentVoucher }: Props) {
       time_limit: '',
       rate_limit: '',
       session_timeout: 0,
-      idle_timeout: 0,      status: 'active',
+      idle_timeout: 0,
+      status: 'active',
       validity_period: '',
       features: '',
       description: '',
-      ...currentVoucher,
-      price: currentVoucher?.price !== undefined ? String(currentVoucher.price) : '',
+      ...currentDocument,
+      price: currentDocument?.price !== undefined ? String(currentDocument.price) : '',
     },
   });
 
@@ -75,9 +76,9 @@ export function VoucherNewEditForm({ currentVoucher }: Props) {
   const onSubmit = handleSubmit(async (data) => {
     try {
       await new Promise((res) => setTimeout(res, 500));
-      toast.success(currentVoucher ? 'Update success!' : 'Create success!');
+      toast.success(currentDocument ? 'Update success!' : 'Create success!');
       reset();
-      router.push(paths.dashboard.document.list); // <- adjust route as needed
+      router.push(paths.dashboard.documents.list); // <- adjust route as needed
       console.info('Submitted data:', data);
     } catch (error) {
       console.error(error);
@@ -112,7 +113,7 @@ export function VoucherNewEditForm({ currentVoucher }: Props) {
 
             <Stack sx={{ mt: 3, alignItems: 'flex-end' }}>
               <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-                {currentVoucher ? 'Save Changes' : 'Create Voucher'}
+                {currentDocument ? 'Save Changes' : 'Create Document'}
               </LoadingButton>
             </Stack>
           </Card>

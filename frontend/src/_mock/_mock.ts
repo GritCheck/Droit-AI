@@ -107,4 +107,14 @@ export const _mock = {
   packageStatus: (i: number) => statuses[i % statuses.length],
   validityPeriod: (i: number) => `${7 + i} days`,
   features: (i: number) => `Feature ${i + 1}, Feature ${i + 2}, Feature ${i + 3}`,
+  
+  // document
+  documentType: (i: number) => ['PDF', 'DOCX', 'TXT', 'MD'][i % 4],
+  documentName: (i: number) => `Document ${i + 1}`,
+  chunkSize: (i: number) => `${512 + i * 256} tokens`,
+  lastSynced: (i: number) => `${i} hours ago`,
+  vectorDimensions: (i: number) => `${768 + i * 256}d`,
+  securityLevel: (i: number) => ['Low', 'Medium', 'High'][i % 3],
+  securityLevelNumber: (i: number) => (i % 3) + 1, // 1, 2, 3 for Low, Medium, High
+  documentStatus: (i: number) => ['indexed', 'processing', 'failed', 'flagged'][i % 4],
 };

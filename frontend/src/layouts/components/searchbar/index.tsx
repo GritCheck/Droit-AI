@@ -150,9 +150,9 @@ export function Searchbar({ data: navItems = [], sx, ...other }: SearchbarProps)
         },
       }}
     >
-      {dataFiltered.map((item) => {
+      {dataFiltered?.map((item) => {
         const partsTitle = parse(item.title, match(item.title, searchQuery));
-        const partsPath = parse(item.path, match(item.path, searchQuery));
+        const partsPath = item.path ? parse(item.path, match(item.path, searchQuery)) : null;
 
         return (
           <MenuItem disableRipple key={`${item.title}${item.path}`}>

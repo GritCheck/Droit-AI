@@ -51,6 +51,8 @@ export function applyFilter({ inputData, query }: ApplyFilterProps): OutputItem[
   if (!query) return inputData;
 
   return inputData.filter(({ title, path, group }) =>
-    [title, path, group].some((field) => field?.toLowerCase().includes(query.toLowerCase()))
+    [title, path, group].some((field) => 
+      field?.toLowerCase().includes(query.toLowerCase())
+    )
   );
 }

@@ -126,15 +126,10 @@ export const paths = {
       edit2: (id: string) => `${ROOTS.DASHBOARD}/customer/${id}/account`,
       demo: { edit: `${ROOTS.DASHBOARD}/customer/${MOCK_ID}/edit` },
     },
-    package: {
-      root: `${ROOTS.DASHBOARD}/package`,
-      new: `${ROOTS.DASHBOARD}/package/new`,
-      list: `${ROOTS.DASHBOARD}/package/list`,
-      cards: `${ROOTS.DASHBOARD}/package/cards`,
-      profile: `${ROOTS.DASHBOARD}/package/profile`,
-      account: `${ROOTS.DASHBOARD}/package/account`,
-      edit: (id: string) => `${ROOTS.DASHBOARD}/package/${id}/edit`,
-      demo: { edit: `${ROOTS.DASHBOARD}/package/${MOCK_ID}/edit` },
+    documents: {
+      new: `${ROOTS.DASHBOARD}/documents/new`,
+      list: `${ROOTS.DASHBOARD}/documents/list`,
+      edit: (id: string) => `${ROOTS.DASHBOARD}/documents/${id}/edit`,
     },
     voucher: {
       root: `${ROOTS.DASHBOARD}/voucher`,

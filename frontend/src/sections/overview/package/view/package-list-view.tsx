@@ -176,13 +176,13 @@ export function PackageListView() {
           heading="List"
           links={[
             { name: 'Dashboard', href: paths.dashboard.root },
-            { name: 'Packages', href: paths.dashboard.package.cards },
+            { name: 'Packages', href: paths.dashboard.document.cards },
             { name: 'List' },
           ]}
           action={
             <Button
               component={RouterLink}
-              href={paths.dashboard.package.new}
+              href={paths.dashboard.document.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
@@ -296,7 +296,7 @@ export function PackageListView() {
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
                         onDeleteRow={() => handleDeleteRow(row.id)}
-                        editHref={paths.dashboard.package.edit(row.id)}
+                        editHref={paths.dashboard.document.edit(row.id)}
                       />
                     ))}
 

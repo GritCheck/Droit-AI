@@ -8,7 +8,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
-import { PackageNewEditForm } from '../package-new-edit-form';
+import { DocumentNewEditForm } from '../document-new-edit-form';
 
 // ----------------------------------------------------------------------
 
@@ -21,16 +21,16 @@ export function PackageEditView({ package: currentPackage }: Props) {
     <DashboardContent>
       <CustomBreadcrumbs
         heading="Edit"
-        backHref={paths.dashboard.package.list}
+        backHref={paths.dashboard.documents.list}
         links={[
           { name: 'Dashboard', href: paths.dashboard.root },
-          { name: 'Packages', href: paths.dashboard.package.root },
+          { name: 'Documents', href: paths.dashboard.fileManager },
           { name: currentPackage?.name },
         ]}
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      <PackageNewEditForm currentPackage={currentPackage} />
+      <DocumentNewEditForm currentDocument={currentPackage} />
     </DashboardContent>
   );
 }

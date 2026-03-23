@@ -77,7 +77,7 @@ export function PackageNewEditForm({ currentPackage }: Props) {
       await new Promise((res) => setTimeout(res, 500));
       toast.success(currentPackage ? 'Update success!' : 'Create success!');
       reset();
-      router.push(paths.dashboard.package.list); // <- adjust route as needed
+      router.push(paths.dashboard.document.list); // <- adjust route as needed
       console.info('Submitted data:', data);
     } catch (error) {
       console.error(error);

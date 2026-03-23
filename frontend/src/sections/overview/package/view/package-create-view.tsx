@@ -17,7 +17,7 @@ export function PackageCreateView() {
         heading="Create a new package"
         links={[
           { name: 'Dashboard', href: paths.dashboard.root },
-          { name: 'Packages', href: paths.dashboard.package.root },
+          { name: 'Packages', href: paths.dashboard.document.root },
           { name: 'New package' },
         ]}
         sx={{ mb: { xs: 3, md: 5 } }}

@@ -1,10 +1,10 @@
 'use client';
 
 import type { TableHeadCellProps } from 'src/components/table';
-import type { IPackageItem, IPackageTableFilters } from 'src/types/package';
+import type { IDocumentItem, IDocumentTableFilters } from 'src/types/document';
 
-import { useState, useCallback } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
+import { useState, useEffect, useCallback } from 'react';
 import { useBoolean, useSetState } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
@@ -20,8 +20,8 @@ import IconButton from '@mui/material/IconButton';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import { _packages } from 'src/_mock/_package';
-import { _roles, USER_STATUS_OPTIONS } from 'src/_mock';
+import { _roles } from 'src/_mock';
+import { _documents } from 'src/_mock/_documents';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Label } from 'src/components/label';
@@ -42,34 +42,79 @@ import {
   TablePaginationCustom,
 } from 'src/components/table';
 
-import { PackageTableRow } from '../voucher-table-row';
-import { PackageTableToolbar} from '../vocuher-table-toolbar';
-import { PackageTableFiltersResult} from '../voucher-table-filters-result';
+import { DocumentTableRow } from '../document-table-row';
+import { DocumentTableToolbar } from '../document-table-toolbar';
+import { DocumentTableFiltersResult } from '../document-table-filters-result';
 
 // ----------------------------------------------------------------------
 
-const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, ...USER_STATUS_OPTIONS];
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'indexed', label: 'Indexed' },
+  { value: 'processing', label: 'Processing' },
+  { value: 'failed', label: 'Failed' },
+  { value: 'flagged', label: 'Flagged' }
+];
 
 const TABLE_HEAD: TableHeadCellProps[] = [
-  { id: 'name', label: 'Name' },
-  { id: 'data_limit', label: 'Data Limit', width: 120 },
-  { id: 'rate_limit', label: 'Rate Limit', width: 120 },
-  { id: 'status', label: 'Status', width: 100 },
-  { id: 'time_limit', label: 'Time Limit', width: 120 },
-  { id: 'price', label: 'Price', width: 140 },
+  { id: 'name', label: 'Document Name' },
+  { id: 'data_limit', label: 'Chunk Size (tokens)', width: 120 },
+  { id: 'rate_limit', label: 'Vector Dimensions', width: 120 },
+  { id: 'status', label: 'Index Status', width: 100 },
+  { id: 'time_limit', label: 'Last Synced', width: 120 },
+  { id: 'price', label: 'Security Level (RLS)', width: 140 },
   { id: 'Actions', width: 88 }, // for actions (edit/delete)
 ];
 
 // ----------------------------------------------------------------------
 
-export function VoucherListView() {
+export function KnowledgeBaseManager() {
   const table = useTable();
-
   const confirmDialog = useBoolean();
 
-  const [tableData, setTableData] = useState<IPackageItem[]>(_packages);
+  // TODO: Integrate with Azure AI Search API for document fetching
+  const tableData = _documents;
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const filters = useSetState<IPackageTableFilters>({ name: '', type: [], status: 'all' });
+  // Placeholder functions for API integration
+  const handleFetch = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      console.log('Fetching documents from Azure AI Search API...');
+      // TODO: Replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch documents');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleDelete = useCallback(async (document: any) => {
+    try {
+      console.log('Deleting document from vector index:', document.id);
+      // TODO: Replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete document');
+    }
+  }, []);
+
+  // Fetch documents on mount
+  useEffect(() => {
+    handleFetch();
+  }, [handleFetch]);
+
+  // Show error toast when there's an error
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  const filters = useSetState<IDocumentTableFilters>({ name: '', type: [], status: 'all' });
   const { state: currentFilters, setState: updateFilters } = filters;
 
   const dataFiltered = applyFilter({
@@ -85,28 +130,34 @@ export function VoucherListView() {
 
   const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
 
+  // Delete a single row using placeholder function
   const handleDeleteRow = useCallback(
-    (id: string) => {
-      const deleteRow = tableData.filter((row) => row.id !== id);
-
-      toast.success('Delete success!');
-
-      setTableData(deleteRow);
-
-      table.onUpdatePageDeleteRow(dataInPage.length);
+    async (id: string) => {
+      const docToDelete = tableData.find((row: { id: string; }) => row.id === id);
+      if (!docToDelete) return;
+      try {
+        await handleDelete(docToDelete);
+        toast.success('Document removed from vector index!');
+        table.onUpdatePageDeleteRow(dataInPage.length);
+      } catch {
+        toast.error('Failed to remove document!');
+      }
     },
-    [dataInPage.length, table, tableData]
+    [tableData, handleDelete, table, dataInPage.length]
   );
 
-  const handleDeleteRows = useCallback(() => {
-    const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
-
-    toast.success('Delete success!');
-
-    setTableData(deleteRows);
-
-    table.onUpdatePageDeleteRows(dataInPage.length, dataFiltered.length);
-  }, [dataFiltered.length, dataInPage.length, table, tableData]);
+  // Delete selected rows using placeholder function
+  const handleDeleteRows = useCallback(async () => {
+    const docsToDelete = tableData.filter((row: { id: string; }) => table.selected.includes(row.id));
+    if (docsToDelete.length === 0) return;
+    try {
+      await Promise.all(docsToDelete.map((doc: { id: string; }) => handleDelete(doc)));
+      toast.success('Documents removed from vector index!');
+      table.onUpdatePageDeleteRows(dataInPage.length, dataFiltered.length);
+    } catch {
+      toast.error('Failed to remove documents!');
+    }
+  }, [tableData, table, dataInPage.length, dataFiltered.length, handleDelete]);
 
   const handleFilterStatus = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {
@@ -120,10 +171,10 @@ export function VoucherListView() {
     <ConfirmDialog
       open={confirmDialog.value}
       onClose={confirmDialog.onFalse}
-      title="Delete"
+      title="Remove Documents"
       content={
         <>
-          Are you sure want to delete <strong> {table.selected.length} </strong> items?
+          Are you sure you want to remove these documents from the vector index?
         </>
       }
       action={
@@ -135,7 +186,7 @@ export function VoucherListView() {
             confirmDialog.onFalse();
           }}
         >
-          Delete
+          Remove
         </Button>
       }
     />
@@ -145,20 +196,20 @@ export function VoucherListView() {
     <>
       <DashboardContent>
         <CustomBreadcrumbs
-          heading="List"
+          heading="Document Registry"
           links={[
             { name: 'Dashboard', href: paths.dashboard.root },
-            { name: 'Packages', href: paths.dashboard.document.cards },
-            { name: 'List' },
+            { name: 'Knowledge Base', href: paths.dashboard.fileManager },
+            { name: 'Document Registry' },
           ]}
           action={
             <Button
               component={RouterLink}
-              href={paths.dashboard.document.new}
+              href={paths.dashboard.documents.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
-              New package
+              Ingest New Document
             </Button>
           }
           sx={{ mb: { xs: 3, md: 5 } }}
@@ -188,14 +239,15 @@ export function VoucherListView() {
                       'soft'
                     }
                     color={
-                      (tab.value === 'active' && 'success') ||
-                      (tab.value === 'pending' && 'warning') ||
-                      (tab.value === 'banned' && 'error') ||
+                      (tab.value === 'indexed' && 'success') ||
+                      (tab.value === 'processing' && 'warning') ||
+                      (tab.value === 'failed' && 'error') ||
+                      (tab.value === 'flagged' && 'info') ||
                       'default'
                     }
                   >
-                    {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
-                      ? tableData.filter((user) => user.status === tab.value).length
+                    {['indexed', 'processing', 'failed', 'flagged'].includes(tab.value)
+                      ? tableData.filter((doc) => doc.status === tab.value).length
                       : tableData.length}
                   </Label>
                 }
@@ -203,14 +255,14 @@ export function VoucherListView() {
             ))}
           </Tabs>
 
-          <PackageTableToolbar
+          {/* <DocumentTableToolbar
             filters={filters}
             onResetPage={table.onResetPage}
             options={{ roles: _roles }}
-          />
+          /> */}
 
           {canReset && (
-            <PackageTableFiltersResult
+            <DocumentTableFiltersResult
               filters={filters}
               totalResults={dataFiltered.length}
               onResetPage={table.onResetPage}
@@ -262,13 +314,13 @@ export function VoucherListView() {
                       table.page * table.rowsPerPage + table.rowsPerPage
                     )
                     .map((row) => (
-                      <PackageTableRow
+                      <DocumentTableRow
                         key={row.id}
                         row={row}
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
                         onDeleteRow={() => handleDeleteRow(row.id)}
-                        editHref={paths.dashboard.document.edit(row.id)}
+                        editHref={paths.dashboard.documents.edit(row.id)}
                       />
                     ))}
 
@@ -303,8 +355,8 @@ export function VoucherListView() {
 // ----------------------------------------------------------------------
 
 type ApplyFilterProps = {
-  inputData: IPackageItem[];
-  filters: IPackageTableFilters;
+  inputData: IDocumentItem[];
+  filters: IDocumentTableFilters;
   comparator: (a: any, b: any) => number;
 };
 
@@ -322,15 +374,15 @@ function applyFilter({ inputData, comparator, filters }: ApplyFilterProps) {
   inputData = stabilizedThis.map((el) => el[0]);
 
   if (name) {
-    inputData = inputData.filter((packageItem) => packageItem.name.toLowerCase().includes(name.toLowerCase()));
+    inputData = inputData.filter((documentItem) => documentItem.name.toLowerCase().includes(name.toLowerCase()));
   }
 
   if (status !== 'all') {
-    inputData = inputData.filter((packageItem) => packageItem.status === status);
+    inputData = inputData.filter((documentItem) => documentItem.status === status);
   }
 
   if (type.length) {
-    inputData = inputData.filter((packageItem) => type.includes(packageItem.type));
+    inputData = inputData.filter((documentItem) => type.includes(documentItem.type));
   }
 
   return inputData;
