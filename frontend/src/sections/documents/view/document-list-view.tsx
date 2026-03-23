@@ -255,11 +255,11 @@ export function KnowledgeBaseManager() {
             ))}
           </Tabs>
 
-          {/* <DocumentTableToolbar
+          <DocumentTableToolbar
             filters={filters}
             onResetPage={table.onResetPage}
             options={{ roles: _roles }}
-          /> */}
+          />
 
           {canReset && (
             <DocumentTableFiltersResult
