@@ -1,4 +1,4 @@
-# Sentinel RAG - Innovation Challenge
+# Droit RAG - Innovation Challenge
 
 A production-ready RAG (Retrieval-Augmented Generation) application with Next.js frontend and FastAPI backend, designed for the Innovation Challenge.
 
