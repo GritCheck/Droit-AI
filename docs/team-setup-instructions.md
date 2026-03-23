@@ -6,7 +6,7 @@
 ```bash
 # Clone and setup
 git clone <repository-url>
-cd sentinel-rag
+cd droitai
 cp .env.example .env
 # Fill in your Azure credentials in .env
 
@@ -83,7 +83,7 @@ docker run -p 6379:6379 redis:7-alpine
 
 ### 📁 Project Structure Overview
 ```
-sentinel-rag/
+droitai/
 ├── frontend/          # Next.js app (port 3000)
 ├── backend/           # FastAPI app (port 8000)  
 ├── data/             # Local documents for testing

@@ -1,0 +1,77 @@
+# Azure Developer CLI deployment template for DroitAI
+target: azure
+version: 1.0.0
+description: Azure-first enterprise RAG system with Document Intelligence - DroitAI
+
+# Azure services to provision
+services:
+  - name: search
+    type: azure-cognitive-search
+    sku: basic
+    properties:
+      semanticSearch: free
+  
+  - name: openai
+    type: azure-openai
+    sku: S0
+    models:
+      - name: gpt-4
+        version: latest
+        type: chat-completion
+      - name: text-embedding-ada-002
+        version: 2
+        type: embeddings
+  
+  - name: docintel
+    type: azure-ai-document-intelligence
+    sku: S0
+  
+  - name: contentsafety
+    type: azure-ai-content-safety
+    sku: S0
+  
+  - name: storage
+    type: azure-storage
+    sku: Standard_LRS
+    kind: StorageV2
+  
+  - name: appservice
+    type: azure-appservice
+    runtime: python
+    runtimeVersion: 3.11
+  
+  - name: staticwebapp
+    type: azure-staticwebapp
+    runtime: node
+    runtimeVersion: 18
+
+# Infrastructure as Code
+infrastructure:
+  path: ./infra
+  type: bicep
+
+# Application configuration
+application:
+  backend:
+    path: ./backend
+    language: python
+    dockerfile: ./Dockerfile
+    port: 8000
+    healthCheck: /health
+  
+  frontend:
+    path: ./frontend
+    language: javascript
+    buildCommand: npm run build
+    outputDirectory: out
+
+# Environment variables
+environment:
+  - name: AZURE_SEARCH_INDEX_NAME
+    value: droitai-index
+  - name: AZURE_STORAGE_CONTAINER_NAME
+    value: documents
+  - name: ENABLE_LOCAL_PARSING
+    value: false
+  - name: LOG_LEVEL
+    value: INFO

@@ -1,6 +1,6 @@
 """
-Parser Service - Dual-pathway document processing
-Supports both local Docling parsing and Azure Document Intelligence
+Parser Service - Azure Document Intelligence only
+Cloud-based document processing with Azure AI Form Recognizer
 """
 
 import logging
@@ -8,23 +8,13 @@ from typing import List, Dict, Any, Optional
 from abc import ABC, abstractmethod
 
 from app.core.config import get_settings
+from app.services.azure_doc_intel_service import AzureDocIntelParser
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-# Try to import Docling for local parsing
-try:
-    DOCLING_AVAILABLE = True
-except ImportError:
-    logger.warning("Docling not available. Local parsing will be disabled.")
-    DOCLING_AVAILABLE = False
-
-# Try to import Azure Document Intelligence
-try:
-    AZURE_DOC_INTEL_AVAILABLE = True
-except ImportError:
-    logger.warning("Azure Document Intelligence not available. Cloud parsing will be disabled.")
-    AZURE_DOC_INTEL_AVAILABLE = False
+# Azure Document Intelligence is always available
+AZURE_DOC_INTEL_AVAILABLE = True
 
 
 class DocumentChunk:
@@ -70,62 +60,34 @@ class BaseParser(ABC):
         pass
 
 
-# Import the actual parser implementations
-try:
-    from app.services.docling_service import DoclingParser
-except ImportError:
-    DoclingParser = None
-
-try:
-    from app.services.azure_doc_intel_service import AzureDocIntelParser
-except ImportError:
-    AzureDocIntelParser = None
-
-
 class ParserFactory:
-    """Factory for creating appropriate parser based on configuration"""
+    """Factory for creating Azure Document Intelligence parser"""
     
     @staticmethod
     def get_parser(mode: Optional[str] = None) -> BaseParser:
-        """Get parser instance based on mode or configuration"""
+        """Get Azure Document Intelligence parser instance"""
         
-        if mode is None:
-            # Use configuration to determine mode
-            mode = "local" if settings.enable_local_parsing else "azure"
+        # Always use Azure Document Intelligence
+        if AzureDocIntelParser is None:
+            logger.error("Azure Document Intelligence is not available")
+            raise ImportError("Azure Document Intelligence is not available")
         
-        if mode == "local":
-            if DoclingParser is None:
-                logger.error("Local parsing requested but Docling is not available")
-                raise ImportError("Docling is not available for local parsing")
-            
-            logger.info("Using Docling parser for local processing")
-            return DoclingParser()
+        if not settings.azure_doc_intelligence_endpoint:
+            logger.error("Azure Document Intelligence endpoint not configured")
+            raise ValueError("Azure Document Intelligence not configured")
         
-        elif mode == "azure":
-            if AzureDocIntelParser is None:
-                logger.error("Azure parsing requested but Document Intelligence is not available")
-                raise ImportError("Azure Document Intelligence is not available for cloud parsing")
-            
-            if not settings.azure_doc_intelligence_endpoint:
-                logger.error("Azure Document Intelligence endpoint not configured")
-                raise ValueError("Azure Document Intelligence not configured")
-            
-            logger.info("Using Azure Document Intelligence parser")
-            return AzureDocIntelParser()
-        
-        else:
-            raise ValueError(f"Unknown parser mode: {mode}")
+        logger.info("Using Azure Document Intelligence parser")
+        return AzureDocIntelParser()
     
     @staticmethod
     def get_available_parsers() -> Dict[str, bool]:
         """Get status of available parsers"""
         return {
-            "docling": DoclingParser is not None,
             "azure_document_intelligence": AzureDocIntelParser is not None
         }
 
 
 # Convenience function for dependency injection
 def get_parser_service(mode: Optional[str] = None) -> BaseParser:
-    """Get parser service instance"""
+    """Get Azure Document Intelligence parser service instance"""
     return ParserFactory.get_parser(mode)

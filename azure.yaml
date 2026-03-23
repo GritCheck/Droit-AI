@@ -1,0 +1,72 @@
+# This file is used by the Azure Developer CLI (azd) to provision and deploy your application.
+# Learn more about the azd template structure at https://learn.microsoft.com/azure/developer/azure-developer-cli/azd-templates
+
+name: droitai
+metadata:
+  template: droitai
+  description: Azure-first enterprise RAG system with Document Intelligence
+services:
+  app:
+    project: ./infra
+    host: appservice
+    language: python
+    docker:
+      context: ../backend
+      file: ../backend/Dockerfile
+    hooks:
+      postprovision:
+        windows:
+          shell: pwsh
+          run: cd ../backend; pip install -r requirements.txt
+          interactive: true
+        posix:
+          shell: bash
+          run: cd ../backend && pip install -r requirements.txt
+          interactive: true
+      predeploy:
+        windows:
+          shell: pwsh
+          run: cd ../backend; python -m pytest test_apis.py -v
+          interactive: true
+        posix:
+          shell: bash
+          run: cd ../backend && python -m pytest test_apis.py -v
+          interactive: true
+    # Environment variables for the App Service
+    env:
+      # Azure AI Search
+      AZURE_SEARCH_ENDPOINT: $AZURE_SEARCH_ENDPOINT
+      AZURE_SEARCH_KEY: $AZURE_SEARCH_KEY
+      AZURE_SEARCH_INDEX_NAME: $AZURE_SEARCH_INDEX_NAME
+      
+      # Azure OpenAI
+      AZURE_OPENAI_ENDPOINT: $AZURE_OPENAI_ENDPOINT
+      AZURE_OPENAI_KEY: $AZURE_OPENAI_KEY
+      AZURE_OPENAI_API_VERSION: $AZURE_OPENAI_API_VERSION
+      AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: $AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
+      AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME: $AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME
+      
+      # Azure Document Intelligence
+      AZURE_DOC_INTELLIGENCE_ENDPOINT: $AZURE_DOC_INTELLIGENCE_ENDPOINT
+      AZURE_DOC_INTELLIGENCE_KEY: $AZURE_DOC_INTELLIGENCE_KEY
+      
+      # Azure Content Safety
+      AZURE_CONTENT_SAFETY_ENDPOINT: $AZURE_CONTENT_SAFETY_ENDPOINT
+      AZURE_CONTENT_SAFETY_KEY: $AZURE_CONTENT_SAFETY_KEY
+      
+      # Azure Storage
+      AZURE_STORAGE_CONNECTION_STRING: $AZURE_STORAGE_CONNECTION_STRING
+      AZURE_STORAGE_CONTAINER_NAME: $AZURE_STORAGE_CONTAINER_NAME
+      
+      # Azure AD
+      AZURE_AD_TENANT_ID: $AZURE_AD_TENANT_ID
+      AZURE_AD_CLIENT_ID: $AZURE_AD_CLIENT_ID
+      AZURE_AD_CLIENT_SECRET: $AZURE_AD_CLIENT_SECRET
+      
+      # Application Settings
+      PYTHONPATH: /home/site/wwwroot
+      LOG_LEVEL: INFO
+      ENABLE_LOCAL_PARSING: false
+      
+      # Frontend URL (for CORS)
+      FRONTEND_URL: $FRONTEND_URL

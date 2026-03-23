@@ -28,7 +28,7 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     # Startup
-    logger.info("Starting SentinelRAG Backend...")
+    logger.info("Starting DroitAI Backend...")
     logger.info(f"Debug mode: {settings.debug}")
     logger.info(f"Local parsing enabled: {settings.enable_local_parsing}")
     logger.info(f"Azure Document Intelligence enabled: {settings.enable_azure_doc_intelligence}")
@@ -37,12 +37,12 @@ async def lifespan(app: FastAPI):
     yield
     
     # Shutdown
-    logger.info("Shutting down SentinelRAG Backend...")
+    logger.info("Shutting down DroitAI Backend...")
 
 
 # Create FastAPI app
 app = FastAPI(
-    title="SentinelRAG API",
+    title="DroitAI API",
     description="Enterprise-grade RAG system with OBO authentication and governed search",
     version="1.0.0",
     docs_url="/docs",
@@ -80,7 +80,7 @@ async def health_check():
     """Main health check endpoint"""
     return {
         "status": "healthy",
-        "service": "SentinelRAG Backend",
+        "service": "DroitAI Backend",
         "version": "1.0.0",
         "timestamp": time.time(),
         "features": {
@@ -98,7 +98,7 @@ async def health_check():
 async def root():
     """Root endpoint"""
     return {
-        "message": "SentinelRAG Backend API",
+        "message": "DroitAI Backend API",
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/health"

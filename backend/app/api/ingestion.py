@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 from app.services.data_preprocessing_service import create_data_preprocessing_service, check_data_preprocessing_health
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/ingestion", tags=["ingestion"])
+router = APIRouter(prefix="/v1/ingest", tags=["ingestion"])
 
 
 class IngestFolderRequest(BaseModel):

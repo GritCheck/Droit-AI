@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # Azure AI Search
     azure_search_endpoint: str = Field("", env="AZURE_SEARCH_ENDPOINT")
     azure_search_key: str = Field("", env="AZURE_SEARCH_KEY")
-    azure_search_index_name: str = Field("rag-index", env="AZURE_SEARCH_INDEX_NAME")
+    azure_search_index_name: str = Field("droitai-index", env="AZURE_SEARCH_INDEX_NAME")
     
     # Azure OpenAI
     azure_openai_endpoint: str = Field("", env="AZURE_OPENAI_ENDPOINT")

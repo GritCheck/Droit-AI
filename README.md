@@ -16,7 +16,7 @@ A production-ready RAG (Retrieval-Augmented Generation) application with Next.js
 ## Project Structure
 
 ```
-/sentinel-rag
+/droitai
 ├── /frontend (Next.js 15+ App Router)
 │   ├── /app
 │   │   ├── /api/auth          # Auth.js / NextAuth config for Azure AD
@@ -57,7 +57,7 @@ A production-ready RAG (Retrieval-Augmented Generation) application with Next.js
 1. **Clone and setup**
    ```bash
    git clone <repository>
-   cd sentinel-rag
+   cd droitai
    cp .env.example .env
    # Fill in your Azure credentials in .env
    ```

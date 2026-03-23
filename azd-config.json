@@ -1,0 +1,181 @@
+{
+  "$schema": "https://azure.github.io/azure-dev/azd-schema.json",
+  "name": "droitai",
+  "version": "1.0.0",
+  "description": "Azure-first enterprise RAG system with Document Intelligence",
+  "workloads": [
+    {
+      "name": "backend",
+      "type": "appservice",
+      "path": "./backend",
+      "language": "python",
+      "docker": {
+        "context": "./backend",
+        "file": "./backend/Dockerfile"
+      }
+    },
+    {
+      "name": "frontend", 
+      "type": "staticwebapp",
+      "path": "./frontend",
+      "language": "javascript",
+      "build": {
+        "output": "out"
+      }
+    }
+  ],
+  "infrastructure": {
+    "path": "./infra",
+    "type": "bicep"
+  },
+  "hooks": {
+    "preprovision": [],
+    "postprovision": [
+      {
+        "shell": "bash",
+        "run": "cd backend && pip install -r requirements.txt"
+      }
+    ],
+    "predeploy": [
+      {
+        "shell": "bash", 
+        "run": "cd backend && python -m pytest test_apis.py -v"
+      }
+    ],
+    "postdeploy": []
+  },
+  "environment": {
+    "variables": {
+      "AZURE_SEARCH_ENDPOINT": {
+        "type": "azure",
+        "resource": "search",
+        "property": "endpoint"
+      },
+      "AZURE_SEARCH_KEY": {
+        "type": "azure", 
+        "resource": "search",
+        "property": "key"
+      },
+      "AZURE_SEARCH_INDEX_NAME": {
+        "type": "string",
+        "default": "droitai-index"
+      },
+      "AZURE_OPENAI_ENDPOINT": {
+        "type": "azure",
+        "resource": "openai",
+        "property": "endpoint"
+      },
+      "AZURE_OPENAI_KEY": {
+        "type": "azure",
+        "resource": "openai", 
+        "property": "key"
+      },
+      "AZURE_OPENAI_API_VERSION": {
+        "type": "string",
+        "default": "2024-02-15-preview"
+      },
+      "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME": {
+        "type": "string",
+        "default": "gpt-4"
+      },
+      "AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME": {
+        "type": "string", 
+        "default": "text-embedding-ada-002"
+      },
+      "AZURE_DOC_INTELLIGENCE_ENDPOINT": {
+        "type": "azure",
+        "resource": "docintel",
+        "property": "endpoint"
+      },
+      "AZURE_DOC_INTELLIGENCE_KEY": {
+        "type": "azure",
+        "resource": "docintel",
+        "property": "key"
+      },
+      "AZURE_CONTENT_SAFETY_ENDPOINT": {
+        "type": "azure",
+        "resource": "contentsafety",
+        "property": "endpoint"
+      },
+      "AZURE_CONTENT_SAFETY_KEY": {
+        "type": "azure",
+        "resource": "contentsafety",
+        "property": "key"
+      },
+      "AZURE_STORAGE_CONNECTION_STRING": {
+        "type": "azure",
+        "resource": "storage",
+        "property": "connectionString"
+      },
+      "AZURE_STORAGE_CONTAINER_NAME": {
+        "type": "string",
+        "default": "documents"
+      },
+      "AZURE_AD_TENANT_ID": {
+        "type": "azure",
+        "resource": "aad",
+        "property": "tenantId"
+      },
+      "AZURE_AD_CLIENT_ID": {
+        "type": "azure",
+        "resource": "aad",
+        "property": "clientId"
+      },
+      "AZURE_AD_CLIENT_SECRET": {
+        "type": "securestring"
+      },
+      "FRONTEND_URL": {
+        "type": "azure",
+        "resource": "frontend",
+        "property": "url"
+      }
+    }
+  },
+  "services": {
+    "search": {
+      "type": "azure-cognitive-search",
+      "api": "2023-11-01",
+      "sku": "basic",
+      "properties": {
+        "semanticSearch": "free"
+      }
+    },
+    "openai": {
+      "type": "azure-openai",
+      "api": "2024-02-15-preview",
+      "sku": "S0",
+      "models": [
+        {
+          "name": "gpt-4",
+          "version": "latest",
+          "type": "chat-completion"
+        },
+        {
+          "name": "text-embedding-ada-002", 
+          "version": "2",
+          "type": "embeddings"
+        }
+      ]
+    },
+    "docintel": {
+      "type": "azure-ai-document-intelligence",
+      "api": "2024-02-29-preview",
+      "sku": "S0"
+    },
+    "contentsafety": {
+      "type": "azure-ai-content-safety",
+      "api": "2023-10-15-preview",
+      "sku": "S0"
+    },
+    "storage": {
+      "type": "azure-storage",
+      "api": "2023-01-01",
+      "sku": "Standard_LRS",
+      "kind": "StorageV2"
+    },
+    "aad": {
+      "type": "azure-active-directory",
+      "api": "1.6"
+    }
+  }
+}
