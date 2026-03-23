@@ -99,7 +99,7 @@ export function HomeHero({ sx, ...other }: BoxProps) {
             ml: { xs: 0.75, md: 1, xl: 1.5 },
           }}
         >
-          SentinelRAG
+          Droit AI
         </Box>
       </Box>
     </m.div>

@@ -1,4 +1,4 @@
-# Azure-first requirements for SentinelRAG with Document Intelligence only
+# Azure-first requirements for Droit AI with Document Intelligence only
 # No local parsing dependencies - Azure services only
 
 # FastAPI and Web Framework

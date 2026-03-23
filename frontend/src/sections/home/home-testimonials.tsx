@@ -76,7 +76,7 @@ export function HomeTestimonials({ sx, ...other }: BoxProps) {
     <SectionTitle
       caption="Client Success"
       title="Enterprises trust"
-      txtGradient="SentinelRAG"
+      txtGradient="Droit AI"
       sx={{ mb: { xs: 5, md: 8 }, textAlign: 'center' }}
     />
   );
@@ -258,7 +258,7 @@ const TESTIMONIALS = [
   {
     ...createReview(1),
     category: 'AI Accuracy',
-    content: `SentinelRAG transformed our document management. The Azure AI Search integration provides incredibly accurate results with verifiable citations. Our research team's productivity has increased by 300%.`,
+    content: `Droit AI transformed our document management. The Azure AI Search integration provides incredibly accurate results with verifiable citations. Our research team's productivity has increased by 300%.`,
     postedAt: 'April 20, 2024 23:15:30',
   },
   {
@@ -270,13 +270,13 @@ const TESTIMONIALS = [
   {
     ...createReview(3),
     category: 'Implementation',
-    content: `Clean & Complete (Azure Integration & RAG). Thanks SentinelRAG team for making enterprise AI accessible!`,
+    content: `Clean & Complete (Azure Integration & RAG). Thanks Droit AI team for making enterprise AI accessible!`,
     postedAt: 'April 19, 2023 23:15:30',
   },
   {
     ...createReview(4),
     category: 'Customer Support',
-    content: `Thanks to SentinelRAG for excellent technical support. The Azure-powered RAG system has revolutionized how we handle knowledge management.`,
+    content: `Thanks to Droit AI for excellent technical support. The Azure-powered RAG system has revolutionized how we handle knowledge management.`,
     postedAt: 'May 19, 2023 23:15:30',
   },
   {
@@ -294,13 +294,13 @@ const TESTIMONIALS = [
   {
     ...createReview(7),
     category: 'ROI',
-    content: `SentinelRAG paid for itself in 3 months. The efficiency gains in document retrieval and analysis are remarkable.`,
+    content: `Droit AI paid for itself in 3 months. The efficiency gains in document retrieval and analysis are remarkable.`,
     postedAt: 'August 19, 2023 23:15:30',
   },
   {
     ...createReview(8),
     category: 'Innovation',
-    content: `The Azure-first approach and responsible AI features set SentinelRAG apart. Regular updates and excellent enterprise support are major advantages.`,
+    content: `The Azure-first approach and responsible AI features set Droit AI apart. Regular updates and excellent enterprise support are major advantages.`,
     postedAt: 'September 19, 2023 23:15:30',
   },
 ];

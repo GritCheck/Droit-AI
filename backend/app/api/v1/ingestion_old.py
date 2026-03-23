@@ -351,7 +351,7 @@ async def _upload_to_data_lake(
         metadata = {
             "document_id": doc_id,
             "allowed_groups": ",".join(allowed_groups),
-            "ingested_by": "SentinelRAG_API",
+            "ingested_by": "Droit_AI_API",
             "parser_used": "Docling" if use_local_parsing else "AzureDocIntel",
             "ingestion_timestamp": ingestion_timestamp,
             "content_type": mime_type,

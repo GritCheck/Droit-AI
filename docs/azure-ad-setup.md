@@ -1,7 +1,7 @@
 # Azure AD OBO Flow Setup Guide
 
 ## Overview
-This guide walks through setting up Azure Active Directory with On-Behalf-Of (OBO) flow for the Sentinel RAG application.
+This guide walks through setting up Azure Active Directory with On-Behalf-Of (OBO) flow for the Droit AI application.
 
 ## Prerequisites
 - Azure AD tenant with admin privileges
@@ -10,7 +10,7 @@ This guide walks through setting up Azure Active Directory with On-Behalf-Of (OB
 ## Step 1: Create Backend App Registration
 1. Navigate to Azure Portal → Azure Active Directory → App registrations
 2. Click "New registration"
-3. Name: `Sentinel-RAG-Backend`
+3. Name: `Droit-AI-Backend`
 4. Supported account types: "Accounts in this organizational directory only"
 5. Redirect URI: (None for backend)
 6. Click "Register"
@@ -19,8 +19,8 @@ This guide walks through setting up Azure Active Directory with On-Behalf-Of (OB
 1. **Expose an API:**
    - Go to "Expose an API" → "Add a scope"
    - Scope name: `access_as_user`
-   - Admin consent display name: `Access Sentinel RAG Backend`
-   - Description: `Allows the frontend to access the backend API`
+   - Admin consent display name: `Access Droit AI Backend`
+   - Description: `Allows the frontend to access the Droit AI backend API`
 
 2. **Authentication:**
    - Go to "Authentication"
@@ -37,7 +37,7 @@ This guide walks through setting up Azure Active Directory with On-Behalf-Of (OB
 
 ## Step 2: Create Frontend App Registration
 1. Navigate to App registrations → "New registration"
-2. Name: `Sentinel-RAG-Frontend`
+2. Name: `Droit-AI-Frontend`
 3. Supported account types: "Accounts in this organizational directory only"
 4. Redirect URI: `http://localhost:3000/api/auth/callback/azure-ad`
 5. Click "Register"
@@ -53,7 +53,7 @@ This guide walks through setting up Azure Active Directory with On-Behalf-Of (OB
 2. **API Permissions:**
    - Go to "API permissions" → "Add a permission"
    - Select "My APIs"
-   - Choose `Sentinel-RAG-Backend`
+   - Choose `Droit-AI-Backend`
    - Select permission: `access_as_user`
    - Click "Add permissions"
    - Grant admin consent

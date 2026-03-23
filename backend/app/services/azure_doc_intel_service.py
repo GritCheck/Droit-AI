@@ -203,7 +203,7 @@ class AzureDocIntelParser:
             # Security and governance
             "allowed_groups": kwargs.get("allowed_groups", []),
             "ingestion_timestamp": kwargs.get("ingestion_timestamp"),
-            "ingested_by": kwargs.get("ingested_by", "SentinelRAG_API"),
+            "ingested_by": kwargs.get("ingested_by", "Droit_AI_API"),
             
             # Content classification
             "content_type": "text",

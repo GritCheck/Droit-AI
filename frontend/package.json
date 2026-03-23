@@ -1,8 +1,8 @@
 {
-  "name": "@sentinelrag/next-ts",
-  "author": "SentinelRAG",
+  "name": "@droitai/next-ts",
+  "author": "Droit AI",
   "version": "6.3.0",
-  "description": "SentinelRAG - Next & TypeScript",
+  "description": "Droit AI - Next & TypeScript",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",

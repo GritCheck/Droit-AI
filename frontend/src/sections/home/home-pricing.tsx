@@ -281,7 +281,7 @@ function PlanCard({ plan, sx, ...other }: PlanCardProps) {
             size="large"
             target="_blank"
             rel="noopener"
-            href={paths.sentinelragStore}
+            href={paths.droitaiStore}
           >
             Get Started
           </Button>

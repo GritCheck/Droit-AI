@@ -1,5 +1,5 @@
 """
-FastAPI Main Application - SentinelRAG Backend
+FastAPI Main Application - Droit AI Backend
 Enterprise-grade RAG with OBO authentication and governed search
 """
 

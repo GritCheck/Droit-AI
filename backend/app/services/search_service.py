@@ -1,5 +1,5 @@
 """
-Governed Search Service for Sentinel RAG
+Governed Search Service for Droit AI
 Implements hybrid search with security filtering and OBO token validation
 """
 

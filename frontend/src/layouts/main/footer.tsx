@@ -21,7 +21,7 @@ import { Logo } from 'src/components/logo';
 
 const LINKS = [
   {
-    headline: 'SentinelRAG',
+    headline: 'Droit AI',
     children: [
       { name: 'About us', href: paths.about },
       { name: 'Contact us', href: paths.contact },
@@ -35,7 +35,7 @@ const LINKS = [
       { name: 'Privacy policy', href: '#' },
     ],
   },
-  { headline: 'Contact', children: [{ name: 'support@sentinelrag.cc', href: '#' }] },
+  { headline: 'Contact', children: [{ name: 'support@droit.ai', href: '#' }] },
 ];
 
 // ----------------------------------------------------------------------
@@ -85,7 +85,7 @@ export function Footer({
                 [theme.breakpoints.up(layoutQuery)]: { mx: 'unset' },
               })}
             >
-              The starting point for your next project with SentinelRAG, built on the newest
+              The starting point for your next project with Droit AI, built on the newest
               version of Material-UI ©, ready to be customized to your style.
             </Typography>
 
@@ -178,7 +178,7 @@ export function HomeFooter({ sx, ...other }: FooterProps) {
         <Box sx={{ mt: 1, typography: 'caption' }}>
           © All rights reserved.
           <br /> made by
-          <Link href="https://sentinelrag.cc/"> sentinelrag.cc </Link>
+          <Link href="https://droit.ai/"> droit.ai </Link>
         </Box>
       </Container>
     </FooterRoot>

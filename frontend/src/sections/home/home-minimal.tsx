@@ -35,7 +35,7 @@ export function HomeMinimal({ sx, ...other }: BoxProps) {
       <SectionTitle
         caption="Key Features"
         title="Why Choose"
-        txtGradient="SentinelRAG?"
+        txtGradient="Droit AI?"
         sx={{ mb: { xs: 5, md: 8 }, textAlign: { xs: 'center', md: 'left' } }}
       />
 

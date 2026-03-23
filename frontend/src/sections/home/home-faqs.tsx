@@ -24,15 +24,15 @@ import { FloatLine, FloatPlusIcon, FloatTriangleDownIcon } from './components/sv
 
 const FAQs = [
   {
-    question: 'How does SentinelRAG ensure answer accuracy?',
+    question: 'How does Droit AI ensure answer accuracy?',
     answer: (
       <Typography>
-        SentinelRAG uses Azure AI Search with semantic ranking and hybrid vector capabilities. Every answer includes verifiable citations with exact page numbers and source references. Our responsible AI framework includes groundedness scoring using Azure AI Studio evaluators to ensure factual accuracy.
+        Droit AI uses Azure AI Search with semantic ranking and hybrid vector capabilities. Every answer includes verifiable citations with exact page numbers and source references. Our responsible AI framework includes groundedness scoring using Azure AI Studio evaluators to ensure factual accuracy.
       </Typography>
     ),
   },
   {
-    question: 'Which SentinelRAG plan is right for my organization?',
+    question: 'Which Droit AI plan is right for my organization?',
     answer: (
       <Box component="ul" sx={{ pl: 3, listStyleType: 'disc' }}>
         <li><strong>Starter Plan</strong>: Ideal for small teams, up to 1K documents (Basic Azure AI Search)</li>
@@ -65,10 +65,10 @@ const FAQs = [
     ),
   },
   {
-    question: 'How secure is our data with SentinelRAG?',
+    question: 'How secure is our data with Droit AI?',
     answer: (
       <Typography>
-        SentinelRAG is built on Azure's enterprise-grade security infrastructure. All data is encrypted at rest and in transit, with Azure AD integration for identity management. We provide complete audit trails in Azure Cosmos DB and comply with enterprise security standards. Your documents never leave your Azure tenant.
+        Droit AI is built on Azure's enterprise-grade security infrastructure. All data is encrypted at rest and in transit, with Azure AD integration for identity management. We provide complete audit trails in Azure Cosmos DB and comply with enterprise security standards. Your documents never leave your Azure tenant.
       </Typography>
     ),
   },
@@ -86,7 +86,7 @@ const FAQs = [
       <Typography>
         Yes, you can check out our
         <Link
-          href="https://mui.com/store/items/sentinelrag-dashboard-free/"
+          href="https://mui.com/store/items/droitai-dashboard-free/"
           target="_blank"
           rel="noopener"
           sx={{ mx: 0.5 }}
@@ -205,7 +205,7 @@ export function HomeFAQs({ sx, ...other }: BoxProps) {
         <Button
           color="inherit"
           variant="contained"
-          href="mailto:support@sentinelrag.cc?subject=[Feedback] from Customer"
+          href="mailto:support@droit.ai?subject=[Feedback] from Customer"
           startIcon={<Iconify icon="fluent:mail-24-filled" />}
         >
           Contact us

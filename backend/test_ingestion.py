@@ -198,7 +198,7 @@ def check_environment():
             print(f"✗ {var}: Not set")
 
 def main():
-    print("SentinelRAG Ingestion API Testing")
+    print("Droit AI Ingestion API Testing")
     print("=================================")
     print("Make sure the server is running: python app/main.py")
     print()

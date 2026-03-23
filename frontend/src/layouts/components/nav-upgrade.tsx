@@ -66,7 +66,7 @@ export function NavUpgrade({ sx, ...other }: BoxProps) {
           </Typography>
         </Box>
 
-        <Button variant="contained" href={paths.sentinelragStore} target="_blank" rel="noopener">
+        <Button variant="contained" href={paths.droitaiStore} target="_blank" rel="noopener">
           Upgrade to Pro
         </Button>
       </Box>

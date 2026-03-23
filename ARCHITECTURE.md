@@ -1,4 +1,4 @@
-# SentinelRAG Architecture - Azure-First Innovation Challenge Solution
+# Droit AI Architecture - Azure-First Innovation Challenge Solution
 
 ## 🏆 Executive Summary
 
@@ -325,7 +325,7 @@ class AzureFirstIngestion:
 > "Enterprise AI requires more than just smart models - it needs Azure's enterprise-grade infrastructure. Standard RAG systems lack Azure's security, scalability, and governance capabilities."
 
 **2. The Azure Solution (60 seconds):**
-> "SentinelRAG is built on **Azure AI Search** as the enterprise knowledge store. We use IBM Docling as a high-precision optimizer to feed Azure's vector store with layout-aware chunks, then secure everything with Azure's governance fabric."
+> "Droit AI is built on **Azure AI Search** as the enterprise knowledge store. We use IBM Docling as a high-precision optimizer to feed Azure's vector store with layout-aware chunks, then secure everything with Azure's governance fabric."
 
 **3. The Azure Governance (30 seconds):**
 > "Every layer is Azure-native: Azure AD for identity, Azure Content Safety with custom regulatory categories, Azure Data Lake for secure storage, and Azure Monitor for complete visibility."
@@ -370,7 +370,7 @@ AZURE_MONITOR_WORKSPACE=your-monitor-workspace
 
 **Team Grit** has created a **pure Azure enterprise solution** that demonstrates mastery of Microsoft's ecosystem while solving the fundamental trust problem in regulated industries. Our **Azure AI Search backbone**, enhanced by layout-aware processing, ensures AI answers are **Azure-governed, enterprise-ready, and fully compliant**.
 
-**The SentinelRAG system delivers:**
+**The Droit AI system delivers:**
 - 🎯 **Azure-First Architecture**: 8+ Azure services deeply integrated
 - 🛡️ **Azure Governance Fabric**: Multi-layer security across Azure stack
 - 📋 **Azure-Backed Traceability**: End-to-end Azure audit trail

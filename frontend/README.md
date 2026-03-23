@@ -28,23 +28,23 @@ npm run build
 
 ## Mock server
 
-By default we provide demo data from : `https://api-dev-sentinelrag-[version].vercel.app`
+By default we provide demo data from : `https://api-dev-droitai-[version].vercel.app`
 
 To set up your local server:
 
-- **Guide:** [https://docs.sentinelrag.cc/mock-server](https://docs.sentinelrag.cc/mock-server).
+- **Guide:** [https://docs.droit.ai/mock-server](https://docs.droit.ai/mock-server).
 
 - **Resource:** [Download](https://www.dropbox.com/sh/6ojn099upi105tf/AACpmlqrNUacwbBfVdtt2t6va?dl=0).
 
 ## Full version
 
-- Create React App ([migrate to CRA](https://docs.sentinelrag.cc/migrate-to-cra/)).
+- Create React App ([migrate to CRA](https://docs.droit.ai/migrate-to-cra/)).
 - Next.js
 - Vite.js
 
 ## Starter version
 
-- To remove unnecessary components. This is a simplified version ([https://starter.sentinelrag.cc/](https://starter.sentinelrag.cc/))
+- To remove unnecessary components. This is a simplified version ([https://starter.droit.ai/](https://starter.droit.ai/))
 - Good to start a new project. You can copy components from the full version.
 - Make sure to install the dependencies exactly as compared to the full version.
 

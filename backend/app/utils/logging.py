@@ -68,7 +68,7 @@ class StructuredLogger:
             "message": message,
             "severity": severity.value,
             "category": category.value,
-            "service": "SentinelRAG",
+            "service": "Droit AI",
             "environment": "development" if settings.debug else "production",
             **kwargs
         }
@@ -234,7 +234,7 @@ class ErrorTracker:
 
 
 # Global instances
-structured_logger = StructuredLogger("sentinel_rag")
+structured_logger = StructuredLogger("droit_ai")
 error_tracker = ErrorTracker()
 
 

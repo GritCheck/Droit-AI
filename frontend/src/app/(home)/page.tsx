@@ -5,35 +5,35 @@ import { HomeView } from 'src/sections/home/view';
 // ----------------------------------------------------------------------
 
 export const metadata: Metadata = {
-  title: 'SentinelRAG: Enterprise AI-Powered Knowledge Retrieval',
-  keywords: ['SentinelRAG', 'Enterprise RAG', 'Azure AI Search', 'Retrieval Augmented Generation', 'Enterprise AI', 'Azure OpenAI'],
+  title: 'Droit AI: Enterprise AI-Powered Knowledge Retrieval',
+  keywords: ['Droit AI', 'Enterprise RAG', 'Azure AI Search', 'Retrieval Augmented Generation', 'Enterprise AI', 'Azure OpenAI'],
   description:
-    'SentinelRAG is an enterprise-grade RAG system powered by Azure AI Search and Azure OpenAI, providing accurate, verifiable answers with enterprise security',
+    'Droit AI is an enterprise-grade RAG system powered by Azure AI Search and Azure OpenAI, providing accurate, verifiable answers with enterprise security',
   openGraph: {
-    title: 'SentinelRAG: Enterprise AI-Powered Knowledge Retrieval',
-    description: 'SentinelRAG is an enterprise-grade RAG system powered by Azure AI Search and Azure OpenAI, providing accurate, verifiable answers with enterprise security',
+    title: 'Droit AI: Enterprise AI-Powered Knowledge Retrieval',
+    description: 'Droit AI is an enterprise-grade RAG system powered by Azure AI Search and Azure OpenAI, providing accurate, verifiable answers with enterprise security',
     type: 'website',
-    url: 'https://sentinelrag.cc',
-    siteName: 'SentinelRAG',
+    url: 'https://droit.ai',
+    siteName: 'Droit AI',
     images: [
       {
-        url: 'https://sentinelrag.cc/og-image.png',
+        url: 'https://droit.ai/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'SentinelRAG: Enterprise AI-Powered Knowledge Retrieval',
+        alt: 'Droit AI: Enterprise AI-Powered Knowledge Retrieval',
       },
     ],
   },
   twitter: {
-    title: 'SentinelRAG: Enterprise AI-Powered Knowledge Retrieval',
-    description: 'SentinelRAG is an enterprise-grade RAG system powered by Azure AI Search and Azure OpenAI, providing accurate, verifiable answers with enterprise security',
+    title: 'Droit AI: Enterprise AI-Powered Knowledge Retrieval',
+    description: 'Droit AI is an enterprise-grade RAG system powered by Azure AI Search and Azure OpenAI, providing accurate, verifiable answers with enterprise security',
     card: 'summary_large_image',
     images: [
       {
-        url: 'https://sentinelrag.cc/og-image.png',
+        url: 'https://droit.ai/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'SentinelRAG: Enterprise AI-Powered Knowledge Retrieval',
+        alt: 'Droit AI: Enterprise AI-Powered Knowledge Retrieval',
       },
     ],
   },
