@@ -45,7 +45,7 @@ class GeneratedAnswer:
     safety_reason: Optional[str]
     token_usage: Dict[str, int]
     generation_time: float
-    model_used: str
+    model_name: str
     metadata: Dict[str, Any]
 
 class LLMOrchestrator:
@@ -176,7 +176,7 @@ Example:
                 safety_reason=safety_result.reason,
                 token_usage=token_usage,
                 generation_time=generation_time,
-                model_used=self.settings.azure_openai_deployment_name,
+                model_name=self.settings.azure_openai_deployment_name,
                 metadata={
                     "query": query,
                     "document_count": len(search_result.documents),

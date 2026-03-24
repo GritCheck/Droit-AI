@@ -4,7 +4,7 @@ Configuration management using Pydantic settings
 
 from typing import Optional, List
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -79,10 +79,13 @@ class Settings(BaseSettings):
     cache_ttl_seconds: int = Field(3600, env="CACHE_TTL_SECONDS")
     embedding_cache_size: int = Field(1000, env="EMBEDDING_CACHE_SIZE")
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
-        extra = "allow"  # Allow extra fields for flexibility
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="allow",
+        protected_namespaces=()  # Allow model_ fields
+    )  # Allow extra fields for flexibility
     
     def __post_init__(self):
         """Validate critical security settings"""

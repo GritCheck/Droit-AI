@@ -41,7 +41,7 @@ class ChatResponse(BaseModel):
     safety_reason: Optional[str] = None
     token_usage: Dict[str, int]
     generation_time: float
-    model_used: str
+    model_name: str
     grounding_sources: List[str]
 
 

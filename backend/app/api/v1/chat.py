@@ -109,7 +109,7 @@ async def ask_question(
                     safety_passed=True,
                     token_usage={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
                     generation_time=time.time() - start_time,
-                    model_used=settings.azure_openai_deployment_name,
+                    model_name=settings.azure_openai_deployment_name,
                     grounding_sources=[]
                 )
             
@@ -143,7 +143,7 @@ async def ask_question(
                         "confidence_score": generated_answer.confidence_score,
                         "safety_passed": generated_answer.safety_passed,
                         "token_usage": generated_answer.token_usage,
-                        "model_used": generated_answer.model_used
+                        "model_name": generated_answer.model_name
                     }
                 )
             
@@ -172,7 +172,7 @@ async def ask_question(
                 safety_reason=generated_answer.safety_reason,
                 token_usage=generated_answer.token_usage,
                 generation_time=generated_answer.generation_time,
-                model_used=generated_answer.model_used,
+                model_name=generated_answer.model_name,
                 grounding_sources=generated_answer.grounding_sources
             )
             
