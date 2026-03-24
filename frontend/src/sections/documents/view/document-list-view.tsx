@@ -1,11 +1,11 @@
 'use client';
 
 import type { TableHeadCellProps } from 'src/components/table';
-import type { IDocumentItem, IDocumentTableFilters } from 'src/types/document';
+import type { IDocumentTableFilters } from 'src/types/document';
 
 import { varAlpha } from 'minimal-shared/utils';
-import { useState, useEffect, useCallback } from 'react';
 import { useBoolean, useSetState } from 'minimal-shared/hooks';
+import { useRef, useMemo, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -20,8 +20,9 @@ import IconButton from '@mui/material/IconButton';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
+import { useDocuments, useDocumentOperations } from 'src/hooks/useDocuments';
+
 import { _roles } from 'src/_mock';
-import { _documents } from 'src/_mock/_documents';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Label } from 'src/components/label';
@@ -35,7 +36,6 @@ import {
   emptyRows,
   rowInPage,
   TableNoData,
-  getComparator,
   TableEmptyRows,
   TableHeadCustom,
   TableSelectedAction,
@@ -71,41 +71,19 @@ const TABLE_HEAD: TableHeadCellProps[] = [
 export function KnowledgeBaseManager() {
   const table = useTable();
   const confirmDialog = useBoolean();
+  const tableRef = useRef(table);
 
-  // TODO: Integrate with Azure AI Search API for document fetching
-  const tableData = _documents;
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  // Placeholder functions for API integration
-  const handleFetch = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      console.log('Fetching documents from Azure AI Search API...');
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch documents');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const handleDelete = useCallback(async (document: any) => {
-    try {
-      console.log('Deleting document from vector index:', document.id);
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete document');
-    }
-  }, []);
-
-  // Fetch documents on mount
+  // Update ref when table changes
   useEffect(() => {
-    handleFetch();
-  }, [handleFetch]);
+    tableRef.current = table;
+  }, [table]);
+
+  const filters = useSetState<IDocumentTableFilters>({ name: '', type: [], status: 'all' });
+  const { state: currentFilters, setState: updateFilters } = filters;
+
+  // Use API hooks instead of static data - initialize with empty filters first
+  const { data: tableData, error, total, refetch } = useDocuments();
+  const { deleteDocument, loading: operationLoading } = useDocumentOperations();
 
   // Show error toast when there's an error
   useEffect(() => {
@@ -114,50 +92,52 @@ export function KnowledgeBaseManager() {
     }
   }, [error]);
 
-  const filters = useSetState<IDocumentTableFilters>({ name: '', type: [], status: 'all' });
-  const { state: currentFilters, setState: updateFilters } = filters;
-
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters: currentFilters,
-  });
-
-  const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
+  // Use server-side filtered data directly - no client-side filtering needed
+  const dataFiltered = useMemo(() => tableData || [], [tableData]);
 
   const canReset =
     !!currentFilters.name || currentFilters.type.length > 0 || currentFilters.status !== 'all';
 
   const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
 
-  // Delete a single row using placeholder function
+  // Delete a single row using API - fixed race condition
   const handleDeleteRow = useCallback(
     async (id: string) => {
-      const docToDelete = tableData.find((row: { id: string; }) => row.id === id);
-      if (!docToDelete) return;
+      if (!tableData) return;
       try {
-        await handleDelete(docToDelete);
+        await deleteDocument(id);
         toast.success('Document removed from vector index!');
-        table.onUpdatePageDeleteRow(dataInPage.length);
+        
+        // Use ref to get current table state and avoid stale closures
+        const currentTable = tableRef.current;
+        const currentDataInPage = rowInPage(dataFiltered, currentTable.page, currentTable.rowsPerPage);
+        currentTable.onUpdatePageDeleteRow(currentDataInPage.length);
+        refetch(); // Refresh data
       } catch {
         toast.error('Failed to remove document!');
       }
     },
-    [tableData, handleDelete, table, dataInPage.length]
+    [tableData, deleteDocument, dataFiltered, refetch]
   );
 
-  // Delete selected rows using placeholder function
+  // Delete selected rows using API - fixed race condition
   const handleDeleteRows = useCallback(async () => {
+    if (!tableData) return;
     const docsToDelete = tableData.filter((row: { id: string; }) => table.selected.includes(row.id));
     if (docsToDelete.length === 0) return;
     try {
-      await Promise.all(docsToDelete.map((doc: { id: string; }) => handleDelete(doc)));
+      await Promise.all(docsToDelete.map((doc: { id: string; }) => deleteDocument(doc.id)));
       toast.success('Documents removed from vector index!');
-      table.onUpdatePageDeleteRows(dataInPage.length, dataFiltered.length);
+      
+      // Use ref to get current table state and avoid stale closures
+      const currentTable = tableRef.current;
+      const currentDataInPage = rowInPage(dataFiltered, currentTable.page, currentTable.rowsPerPage);
+      currentTable.onUpdatePageDeleteRows(currentDataInPage.length, dataFiltered.length);
+      refetch(); // Refresh data
     } catch {
       toast.error('Failed to remove documents!');
     }
-  }, [tableData, table, dataInPage.length, dataFiltered.length, handleDelete]);
+  }, [tableData, table.selected, deleteDocument, dataFiltered, refetch]);
 
   const handleFilterStatus = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {
@@ -185,8 +165,10 @@ export function KnowledgeBaseManager() {
             handleDeleteRows();
             confirmDialog.onFalse();
           }}
+          disabled={operationLoading}
+          startIcon={operationLoading ? <Iconify icon="mingcute:loading-line" sx={{ animation: 'spin 1s linear infinite' }} /> : null}
         >
-          Remove
+          {operationLoading ? 'Removing...' : 'Remove'}
         </Button>
       }
     />
@@ -247,8 +229,8 @@ export function KnowledgeBaseManager() {
                     }
                   >
                     {['indexed', 'processing', 'failed', 'flagged'].includes(tab.value)
-                      ? tableData.filter((doc) => doc.status === tab.value).length
-                      : tableData.length}
+                      ? (tableData?.filter((doc: any) => doc?.status === tab.value) || []).length
+                      : (tableData?.length || 0)}
                   </Label>
                 }
               />
@@ -278,12 +260,16 @@ export function KnowledgeBaseManager() {
               onSelectAllRows={(checked) =>
                 table.onSelectAllRows(
                   checked,
-                  dataFiltered.map((row) => row.id)
+                  dataFiltered?.map((row) => row?.id).filter(Boolean) || []
                 )
               }
               action={
-                <Tooltip title="Delete">
-                  <IconButton color="primary" onClick={confirmDialog.onTrue}>
+                <Tooltip title={operationLoading ? "Deleting..." : "Delete"}>
+                  <IconButton 
+                    color="primary" 
+                    onClick={confirmDialog.onTrue}
+                    disabled={operationLoading}
+                  >
                     <Iconify icon="solar:trash-bin-trash-bold" />
                   </IconButton>
                 </Tooltip>
@@ -298,35 +284,36 @@ export function KnowledgeBaseManager() {
                   headCells={TABLE_HEAD}
                   rowCount={dataFiltered.length}
                   numSelected={table.selected.length}
-                  onSort={table.onSort}
-                  onSelectAllRows={(checked) =>
+                  onSort={table.onSort && table.onSort}
+                  onSelectAllRows={table.onSelectAllRows && ((checked) =>
                     table.onSelectAllRows(
                       checked,
-                      dataFiltered.map((row) => row.id)
+                      dataFiltered?.map((row) => row?.id).filter(Boolean) || []
                     )
-                  }
+                  )}
                 />
 
                 <TableBody>
-                  {dataFiltered
+                  {(dataFiltered || [])
                     .slice(
                       table.page * table.rowsPerPage,
                       table.page * table.rowsPerPage + table.rowsPerPage
                     )
+                    .filter((row): row is NonNullable<typeof row> => row != null)
                     .map((row) => (
                       <DocumentTableRow
-                        key={row.id}
+                        key={row?.id || `row-${Math.random()}`}
                         row={row}
-                        selected={table.selected.includes(row.id)}
-                        onSelectRow={() => table.onSelectRow(row.id)}
-                        onDeleteRow={() => handleDeleteRow(row.id)}
-                        editHref={paths.dashboard.documents.edit(row.id)}
+                        selected={table.selected.includes(row?.id || '')}
+                        onSelectRow={() => row?.id && table.onSelectRow(row.id)}
+                        onDeleteRow={() => row?.id && handleDeleteRow(row.id)}
+                        editHref={row?.id ? paths.dashboard.documents.edit(row.id) : '#'}
                       />
                     ))}
 
                   <TableEmptyRows
                     height={table.dense ? 56 : 56 + 20}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, dataFiltered.length)}
+                    emptyRows={emptyRows(table.page, table.rowsPerPage, total || 0)}
                   />
 
                   <TableNoData notFound={notFound} />
@@ -338,7 +325,7 @@ export function KnowledgeBaseManager() {
           <TablePaginationCustom
             page={table.page}
             dense={table.dense}
-            count={dataFiltered.length}
+            count={total || 0} // Use server-side total count
             rowsPerPage={table.rowsPerPage}
             onPageChange={table.onChangePage}
             onChangeDense={table.onChangeDense}
@@ -350,40 +337,4 @@ export function KnowledgeBaseManager() {
       {renderConfirmDialog()}
     </>
   );
-}
-
-// ----------------------------------------------------------------------
-
-type ApplyFilterProps = {
-  inputData: IDocumentItem[];
-  filters: IDocumentTableFilters;
-  comparator: (a: any, b: any) => number;
-};
-
-function applyFilter({ inputData, comparator, filters }: ApplyFilterProps) {
-  const { name, status, type } = filters;
-
-  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
-
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  inputData = stabilizedThis.map((el) => el[0]);
-
-  if (name) {
-    inputData = inputData.filter((documentItem) => documentItem.name.toLowerCase().includes(name.toLowerCase()));
-  }
-
-  if (status !== 'all') {
-    inputData = inputData.filter((documentItem) => documentItem.status === status);
-  }
-
-  if (type.length) {
-    inputData = inputData.filter((documentItem) => type.includes(documentItem.type));
-  }
-
-  return inputData;
 }

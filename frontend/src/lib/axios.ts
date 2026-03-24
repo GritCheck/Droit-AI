@@ -17,57 +17,142 @@ export default axiosInstance;
 
 // ----------------------------------------------------------------------
 
-export const fetcher = async (args: string | [string, AxiosRequestConfig]) => {
+export async function fetcher(args: string | [string, AxiosRequestConfig]): Promise<any> {
   try {
     const [url, config] = Array.isArray(args) ? args : [args];
 
     const res = await axiosInstance.get(url, { ...config });
 
-    return res.data;
-  } catch (error) {
-    console.error('Failed to fetch:', error);
-    throw error;
-  }
-};
+    // Validate response structure
+    if (!res.data) {
+      throw new Error('Empty response received from server');
+    }
 
-export const poster = async (args: string | [string, AxiosRequestConfig]) => {
+    // Basic validation to prevent injection attacks
+    if (typeof res.data === 'string' && res.data.length > 1000000) {
+      throw new Error('Response too large');
+    }
+
+    return res.data;
+  } catch (error: unknown) {
+    console.error('Failed to fetch:', error);
+    
+    // Standardize error handling
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as any;
+      if (axiosError.response?.data?.detail) {
+        throw new Error(axiosError.response.data.detail);
+      } else if (axiosError.response?.data?.message) {
+        throw new Error(axiosError.response.data.message);
+      }
+    } else if (error instanceof Error) {
+      throw error;
+    } else {
+      throw new Error('An unexpected error occurred');
+    }
+  }
+  // This line is never reached but satisfies the linter
+  return null;
+}
+
+export async function poster(args: string | [string, AxiosRequestConfig]): Promise<any> {
   try {
     const [url, config] = Array.isArray(args) ? args : [args];
 
     const res = await axiosInstance.post(url, { ...config });
 
-    return res.data;
-  } catch (error) {
-    console.error('Failed to post:', error);
-    throw error;
-  }
-};
+    // Validate response structure
+    if (!res.data) {
+      throw new Error('Empty response received from server');
+    }
 
-export const putter = async (args: string | [string, AxiosRequestConfig]) => {
+    return res.data;
+  } catch (error: unknown) {
+    console.error('Failed to post:', error);
+    
+    // Standardize error handling
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as any;
+      if (axiosError.response?.data?.detail) {
+        throw new Error(axiosError.response.data.detail);
+      } else if (axiosError.response?.data?.message) {
+        throw new Error(axiosError.response.data.message);
+      }
+    } else if (error instanceof Error) {
+      throw error;
+    } else {
+      throw new Error('An unexpected error occurred');
+    }
+  }
+  // This line is never reached but satisfies the linter
+  return null;
+}
+
+export async function putter(args: string | [string, AxiosRequestConfig]): Promise<any> {
   try {
     const [url, config] = Array.isArray(args) ? args : [args];
 
     const res = await axiosInstance.put(url, { ...config });
 
-    return res.data;
-  } catch (error) {
-    console.error('Failed to put:', error);
-    throw error;
-  }
-};
+    // Validate response structure
+    if (!res.data) {
+      throw new Error('Empty response received from server');
+    }
 
-export const deleter = async (args: string | [string, AxiosRequestConfig]) => {
+    return res.data;
+  } catch (error: unknown) {
+    console.error('Failed to put:', error);
+    
+    // Standardize error handling
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as any;
+      if (axiosError.response?.data?.detail) {
+        throw new Error(axiosError.response.data.detail);
+      } else if (axiosError.response?.data?.message) {
+        throw new Error(axiosError.response.data.message);
+      }
+    } else if (error instanceof Error) {
+      throw error;
+    } else {
+      throw new Error('An unexpected error occurred');
+    }
+  }
+  // This line is never reached but satisfies the linter
+  return null;
+}
+
+export async function deleter(args: string | [string, AxiosRequestConfig]): Promise<any> {
   try {
     const [url, config] = Array.isArray(args) ? args : [args];
 
     const res = await axiosInstance.delete(url, { ...config });
 
+    // Validate response structure
+    if (!res.data) {
+      throw new Error('Empty response received from server');
+    }
+
     return res.data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Failed to delete:', error);
-    throw error;
+    
+    // Standardize error handling
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as any;
+      if (axiosError.response?.data?.detail) {
+        throw new Error(axiosError.response.data.detail);
+      } else if (axiosError.response?.data?.message) {
+        throw new Error(axiosError.response.data.message);
+      }
+    } else if (error instanceof Error) {
+      throw error;
+    } else {
+      throw new Error('An unexpected error occurred');
+    }
   }
-};
+  // This line is never reached but satisfies the linter
+  return null;
+}
 
 // ----------------------------------------------------------------------
 
@@ -113,5 +198,40 @@ export const endpoints = {
     create: '/packages/create/',
     update: '/packages/update',
     delete: '/packages',
+  },
+  dashboard: {
+    overview: '/api/v1/dashboard/overview',
+    stats: '/api/v1/dashboard/stats',
+    charts: '/api/v1/dashboard/charts',
+    widgets: '/api/v1/dashboard/widgets',
+    health: '/api/v1/dashboard/health',
+  },
+  ingestion: {
+    overview: '/api/v1/ingestion/overview',
+    summary: '/api/v1/ingestion/summary',
+    storage: '/api/v1/ingestion/storage',
+    activity: '/api/v1/ingestion/activity',
+    health: '/api/v1/ingestion/health',
+  },
+  responsible: {
+    overview: '/api/v1/responsible/overview',
+    summary: '/api/v1/responsible/summary',
+    performance: '/api/v1/responsible/performance',
+    safety: '/api/v1/responsible/safety',
+    health: '/api/v1/responsible/health',
+  },
+  security: {
+    groups: '/api/v1/security/groups',
+    rlsPolicies: '/api/v1/security/rls-policies',
+    userClearance: '/api/v1/security/user-clearance',
+    health: '/api/v1/security/health',
+  },
+  documents: {
+    list: '/api/v1/documents/',
+    detail: '/api/v1/documents/{id}',
+    delete: '/api/v1/documents/{id}',
+    reindex: '/api/v1/documents/{id}/reindex',
+    stats: '/api/v1/documents/stats/overview',
+    health: '/api/v1/documents/health',
   },
 };
