@@ -42,7 +42,9 @@
     ".next",
     "dist",
     "build",
+    "src/sections/_examples/**/*",
     "sections/_examples/**/*",
+    "src/sections/overview/e-commerce/**/*",
     "sections/overview/e-commerce/**/*",
     "components/map/**/*",
     "src/components/map/**/*"

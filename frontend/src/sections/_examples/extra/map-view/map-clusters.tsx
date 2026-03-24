@@ -29,9 +29,11 @@ export function MapClusters({ sx, ...other }: MapProps) {
       }
 
       if (feature?.geometry.type === 'Point') {
+        const targetZoom = typeof zoom === 'number' && !Number.isNaN(zoom) ? zoom : 3;
+
         mapRef.current?.easeTo({
           center: feature?.geometry.coordinates as LngLatLike | undefined,
-          zoom: Number.isNaN(zoom) ? 3 : zoom,
+          zoom: targetZoom,
           duration: 500,
         });
       }

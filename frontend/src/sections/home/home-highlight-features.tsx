@@ -33,7 +33,7 @@ const renderLines = () => (
 );
 
 export function HomeHighlightFeatures({ sx, ...other }: BoxProps) {
-  const containerRoot = useClientRect();
+  const containerRoot = useClientRect<HTMLDivElement>();
 
   return (
     <Box
