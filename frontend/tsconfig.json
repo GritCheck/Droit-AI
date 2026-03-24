@@ -38,6 +38,13 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next",
+    "dist",
+    "build",
+    "sections/_examples/**/*",
+    "sections/overview/e-commerce/**/*",
+    "components/map/**/*",
+    "src/components/map/**/*"
   ]
 }

@@ -30,12 +30,17 @@ param enableOboFlow bool = true
 
 // Resource outputs - Non-sensitive only
 output AZURE_SEARCH_ENDPOINT string = 'https://${searchAccount.name}.search.windows.net'
+output AZURE_SEARCH_KEY string = listKeys(searchAccount.id, searchAccount.apiVersion).primaryKey
 output AZURE_OPENAI_ENDPOINT string = openaiAccount.properties.endpoint
+output AZURE_OPENAI_KEY string = listKeys(openaiAccount.id, openaiAccount.apiVersion).primaryKey
 output AZURE_OPENAI_CHAT_DEPLOYMENT_NAME string = gpt4Deployment.name
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME string = embeddingDeployment.name
 output AZURE_OPENAI_API_VERSION string = '2024-02-15-preview'
 output AZURE_DOC_INTELLIGENCE_ENDPOINT string = docIntelAccount.properties.endpoint
+output AZURE_DOC_INTELLIGENCE_KEY string = listKeys(docIntelAccount.id, docIntelAccount.apiVersion).primaryKey
 output AZURE_CONTENT_SAFETY_ENDPOINT string = contentSafetyAccount.properties.endpoint
+output AZURE_CONTENT_SAFETY_KEY string = listKeys(contentSafetyAccount.id, contentSafetyAccount.apiVersion).primaryKey
+output AZURE_STORAGE_CONNECTION_STRING string = 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
 output AZURE_STORAGE_CONTAINER_NAME string = 'documents'
 output AZURE_STORAGE_ACCOUNT_NAME string = storageAccount.name
 output AZURE_SEARCH_INDEX_NAME string = 'droitai-index'
@@ -47,7 +52,7 @@ output FRONTEND_URL string = frontendUrl
 output LOG_LEVEL string = 'INFO'
 output ENABLE_LOCAL_PARSING string = 'false'
 output ENABLE_OBO_FLOW string = enableOboFlow ? 'true' : 'false'
-// Note: Entra ID configuration must be set manually after app creation
+// Entra ID Configuration - set from environment
 output ENTRA_APP_CLIENT_ID string = 'SETUP_REQUIRED'
 output ENTRA_APP_CLIENT_SECRET string = 'SETUP_REQUIRED'
 output ENTRA_APP_TENANT_ID string = tenant().tenantId

@@ -99,7 +99,7 @@ export function useChat(options: ChatOptions = {}) {
   }, [state.messages]);
 
   const sendMessage = useCallback(async (message: string) => {
-    if (!session?.accessToken) {
+    if (!session?.user) {
       setState(prev => ({ ...prev, error: 'Not authenticated' }));
       return;
     }
@@ -132,7 +132,7 @@ export function useChat(options: ChatOptions = {}) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${session.user?.email}`,
         },
         body: JSON.stringify({
           message,
@@ -195,7 +195,7 @@ export function useChat(options: ChatOptions = {}) {
         error: errorMessage,
       }));
     }
-  }, [session?.accessToken, state.conversationId, options]);
+  }, [session?.user, state.conversationId, options]);
 
   const stopGeneration = useCallback(() => {
     if (abortControllerRef.current) {
@@ -222,19 +222,19 @@ export function useChat(options: ChatOptions = {}) {
   }, []);
 
   const submitFeedback = useCallback(async (messageId: string, rating: number, feedbackType: string, comment?: string) => {
-    if (!session?.accessToken) return;
+    if (!session?.user) return;
 
     try {
       await fetch(`${API_BASE_URL}/api/v1/chat/feedback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${session.user?.email}`,
         },
         body: JSON.stringify({
           message_id: messageId,
           conversation_id: state.conversationId,
-          user_id: session.user?.id,
+          user_id: session.user?.email,
           rating,
           feedback_type: feedbackType,
           comment,
@@ -244,7 +244,7 @@ export function useChat(options: ChatOptions = {}) {
     } catch (error) {
       console.error('Failed to submit feedback:', error);
     }
-  }, [session?.accessToken, session?.user?.id, state.conversationId]);
+  }, [session?.user?.email, session?.user?.email, state.conversationId]);
 
   const retryMessage = useCallback(async (messageId: string) => {
     const messageIndex = state.messages.findIndex(m => m.id === messageId);

@@ -119,11 +119,11 @@ function Item({ item, sx, ...other }: ItemProps) {
               size="small"
               precision={0.5}
               name="reviews"
-              value={item.start_date}
+              value={item.status === 'Approved' ? 1 : 0.5}
               max={1}
               sx={{ [` .${svgIconClasses.root}`]: { width: 16, height: 16 } }}
             />
-            {fShortenNumber(item.totalReviews)}
+            {fShortenNumber(30000)}
           </Box>
         </Stack>
       </div>

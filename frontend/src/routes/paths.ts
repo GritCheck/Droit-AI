@@ -34,12 +34,6 @@ export const paths = {
   droitaiStore: 'https://mui.com/store/items/minimal-dashboard/',
   freeUI: 'https://mui.com/store/items/droitai-dashboard-free/',
   figmaUrl: 'https://www.figma.com/design/cAPz4pYPtQEXivqe11EcDE/%5BPreview%5D-DroitAI-Web.v6.0.0',
-  leave: {
-    root: `/leave`,
-    checkout: `/leave/checkout`,
-    details: (id: string) => `/leave/${id}`,
-    demo: { details: `/leave/${MOCK_ID}` },
-  },
   post: {
     root: `/post`,
     details: (title: string) => `/post/${kebabCase(title)}`,
@@ -116,63 +110,14 @@ export const paths = {
       edit: (id: string) => `${ROOTS.DASHBOARD}/user/${id}/edit`,
       demo: { edit: `${ROOTS.DASHBOARD}/user/${MOCK_ID}/edit` },
     },
-    customer: {
-      root: `${ROOTS.DASHBOARD}/customer`,
-      new: `${ROOTS.DASHBOARD}/customer/new`,
-      list: `${ROOTS.DASHBOARD}/customer/list`,
-      cards: `${ROOTS.DASHBOARD}/customer/cards`,
-      profile: `${ROOTS.DASHBOARD}/customer/profile`,
-      account: `${ROOTS.DASHBOARD}/customer/account`,
-      edit: (id: string) => `${ROOTS.DASHBOARD}/customer/${id}/edit`,
-      edit2: (id: string) => `${ROOTS.DASHBOARD}/customer/${id}/account`,
-      demo: { edit: `${ROOTS.DASHBOARD}/customer/${MOCK_ID}/edit` },
-    },
+
     documents: {
       new: `${ROOTS.DASHBOARD}/documents/new`,
       list: `${ROOTS.DASHBOARD}/documents/list`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/documents/${id}/edit`,
     },
-    voucher: {
-      root: `${ROOTS.DASHBOARD}/voucher`,
-      new: `${ROOTS.DASHBOARD}/voucher/new`,
-      list: `${ROOTS.DASHBOARD}/voucher/list`,
-      cards: `${ROOTS.DASHBOARD}/voucher/cards`,
-      profile: `${ROOTS.DASHBOARD}/voucher/profile`,
-      account: `${ROOTS.DASHBOARD}/voucher/account`,
-      edit: (id: string) => `${ROOTS.DASHBOARD}/voucher/${id}/edit`,
-      demo: { edit: `${ROOTS.DASHBOARD}/voucher/${MOCK_ID}/edit` },
-    },
-    equipment: {
-      root: `${ROOTS.DASHBOARD}/equipment`,
-      new: `${ROOTS.DASHBOARD}/equipment/new`,
-      list: `${ROOTS.DASHBOARD}/equipment/list`,
-      cards: `${ROOTS.DASHBOARD}/equipment/cards`,
-      profile: `${ROOTS.DASHBOARD}/equipment/profile`,
-      account: `${ROOTS.DASHBOARD}/equipment/account`,
-      edit: (id: string) => `${ROOTS.DASHBOARD}/equipment/${id}/edit`,
-      demo: { edit: `${ROOTS.DASHBOARD}/equipment/${MOCK_ID}/edit` },
-    },
-    payment: {
-      root: `${ROOTS.DASHBOARD}/payment`,
-      new: `${ROOTS.DASHBOARD}/payment/new`,
-      list: `${ROOTS.DASHBOARD}/payment/list`,
-      cards: `${ROOTS.DASHBOARD}/payment/cards`,
-      profile: `${ROOTS.DASHBOARD}/payment/profile`,
-      account: `${ROOTS.DASHBOARD}/payment/account`,
-      edit: (id: string) => `${ROOTS.DASHBOARD}/payment/${id}/edit`,
-      demo: { edit: `${ROOTS.DASHBOARD}/payment/${MOCK_ID}/edit` },
-    },
-    leave: {
-      root: `${ROOTS.DASHBOARD}/leave`,
-      new: `${ROOTS.DASHBOARD}/leave/new`,
-      details: (id: string) => `${ROOTS.DASHBOARD}/leave/${id}`,
-      edit: (id: string) => `${ROOTS.DASHBOARD}/leave/${id}/edit`,
-      balances: `${ROOTS.DASHBOARD}/leave/balances`,
-      demo: {
-        details: `${ROOTS.DASHBOARD}/leave/${MOCK_ID}`,
-        edit: `${ROOTS.DASHBOARD}/leave/${MOCK_ID}/edit`,
-      },
-    },
+
+
     invoice: {
       root: `${ROOTS.DASHBOARD}/invoice`,
       new: `${ROOTS.DASHBOARD}/invoice/new`,
@@ -206,16 +151,6 @@ export const paths = {
       demo: {
         details: `${ROOTS.DASHBOARD}/job/${MOCK_ID}`,
         edit: `${ROOTS.DASHBOARD}/job/${MOCK_ID}/edit`,
-      },
-    },
-    tour: {
-      root: `${ROOTS.DASHBOARD}/tour`,
-      new: `${ROOTS.DASHBOARD}/tour/new`,
-      details: (id: string) => `${ROOTS.DASHBOARD}/tour/${id}`,
-      edit: (id: string) => `${ROOTS.DASHBOARD}/tour/${id}/edit`,
-      demo: {
-        details: `${ROOTS.DASHBOARD}/tour/${MOCK_ID}`,
-        edit: `${ROOTS.DASHBOARD}/tour/${MOCK_ID}/edit`,
       },
     },
   },

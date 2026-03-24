@@ -4,7 +4,6 @@ import { kebabCase } from 'es-toolkit';
 
 import { CONFIG } from 'src/global-config';
 import axios, { endpoints } from 'src/lib/axios';
-import { getPost, getLatestPosts } from 'src/actions/blog-ssr';
 
 import { PostDetailsHomeView } from 'src/sections/blog/view';
 
@@ -16,12 +15,21 @@ type Props = {
   params: { title: string };
 };
 
+async function getPost(title: string) {
+  // Ensure we handle the case where title might be empty/null
+  const URL = title ? `${endpoints.post.details}?title=${title}` : '';
+
+  const res = await axios.get(URL);
+
+  return res.data;
+}
+
 export default async function Page({ params }: Props) {
   const { title } = params;
 
   const { post } = await getPost(title);
 
-  const { latestPosts } = await getLatestPosts(title);
+  const { latestPosts } = await getPost(title);
 
   return <PostDetailsHomeView post={post} latestPosts={latestPosts} />;
 }
@@ -33,8 +41,7 @@ export default async function Page({ params }: Props) {
  * Remove [1] and [2] if not using [2]
  * Will remove in Next.js v15
  */
-const dynamic = CONFIG.isStaticExport ? 'auto' : 'force-dynamic';
-export { dynamic };
+export const dynamic = 'force-dynamic';
 
 /**
  * [2] Static exports

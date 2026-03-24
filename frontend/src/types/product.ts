@@ -2,6 +2,21 @@ import type { IDateValue } from './common';
 
 // ----------------------------------------------------------------------
 
+export type IProductItem = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  price: number;
+  rating: number;
+  image: string;
+  gender: string[];
+  colors: string[];
+  inStock: boolean;
+  sku: string;
+  brand: string;
+};
+
 export type IProductFilters = {
   rating: string;
   gender: string[];

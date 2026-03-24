@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     
     # Azure OpenAI
     azure_openai_endpoint: str = Field("", env="AZURE_OPENAI_ENDPOINT")
-    azure_openai_api_key: str = Field("", env="AZURE_OPENAI_API_KEY")
+    azure_openai_api_key: str = Field("", env="AZURE_OPENAI_KEY")
     azure_openai_deployment_name: str = Field("gpt-4", env="AZURE_OPENAI_DEPLOYMENT_NAME")
     azure_openai_embedding_deployment: str = Field("text-embedding-ada-002", env="AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
     
@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     cosmos_db_emulator: bool = Field(False, env="COSMOS_DB_EMULATOR")
     
     # Security
-    jwt_secret_key: str = Field(..., env="JWT_SECRET_KEY", description="JWT secret key for session tokens")
+    jwt_secret_key: str = Field("dev-secret-key-change-in-production", env="JWT_SECRET_KEY")
     jwt_algorithm: str = Field("HS256", env="JWT_ALGORITHM")
     jwt_expiration_hours: int = Field(24, env="JWT_EXPIRATION_HOURS")
     
@@ -82,6 +82,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "allow"  # Allow extra fields for flexibility
     
     def __post_init__(self):
         """Validate critical security settings"""

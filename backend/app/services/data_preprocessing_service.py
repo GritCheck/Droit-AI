@@ -13,7 +13,7 @@ from azure.storage.blob import BlobServiceClient
 
 from app.core.config import get_settings
 from app.services.parser_service import get_parser_service
-from app.services.search_service import SearchService
+from app.services.search_service import GovernedSearchService
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -27,7 +27,7 @@ class DataPreprocessingService:
     
     def __init__(self):
         self.parser = get_parser_service()
-        self.search_service = SearchService()
+        self.search_service: Optional[GovernedSearchService] = None
         
         # Initialize Azure Storage client
         self.blob_service_client = BlobServiceClient.from_connection_string(

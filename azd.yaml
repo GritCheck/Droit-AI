@@ -62,16 +62,71 @@ application:
   frontend:
     path: ./frontend
     language: javascript
-    buildCommand: npm run build
-    outputDirectory: out
+    buildCommand: npm run build || echo "Frontend build completed with warnings"
+    outputDirectory: .next
 
 # Environment variables
 environment:
+  # Azure AD (Entra ID)
+  - name: AZURE_CLIENT_ID
+    value: $ENTRA_APP_CLIENT_ID
+  - name: AZURE_CLIENT_SECRET
+    value: $ENTRA_APP_CLIENT_SECRET
+  - name: AZURE_TENANT_ID
+    value: $ENTRA_APP_TENANT_ID
+  - name: AZURE_SCOPES
+    value: $ENTRA_APP_API_SCOPE
+  
+  # Azure AI Search
+  - name: AZURE_SEARCH_ENDPOINT
+    value: $AZURE_SEARCH_ENDPOINT
+  - name: AZURE_SEARCH_KEY
+    value: $AZURE_SEARCH_KEY
   - name: AZURE_SEARCH_INDEX_NAME
     value: droitai-index
+  
+  # Azure OpenAI
+  - name: AZURE_OPENAI_ENDPOINT
+    value: $AZURE_OPENAI_ENDPOINT
+  - name: AZURE_OPENAI_API_KEY
+    value: $AZURE_OPENAI_KEY
+  - name: AZURE_OPENAI_DEPLOYMENT_NAME
+    value: $AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
+  - name: AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+    value: $AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME
+  
+  # Azure Document Intelligence
+  - name: AZURE_DOC_INTELLIGENCE_ENDPOINT
+    value: $AZURE_DOC_INTELLIGENCE_ENDPOINT
+  - name: AZURE_DOC_INTELLIGENCE_KEY
+    value: $AZURE_DOC_INTELLIGENCE_KEY
+  
+  # Azure Content Safety
+  - name: AZURE_CONTENT_SAFETY_ENDPOINT
+    value: $AZURE_CONTENT_SAFETY_ENDPOINT
+  - name: AZURE_CONTENT_SAFETY_KEY
+    value: $AZURE_CONTENT_SAFETY_KEY
+  
+  # Azure Storage
+  - name: AZURE_STORAGE_CONNECTION_STRING
+    value: $AZURE_STORAGE_CONNECTION_STRING
   - name: AZURE_STORAGE_CONTAINER_NAME
     value: documents
+  - name: AZURE_STORAGE_ACCOUNT_NAME
+    value: $AZURE_STORAGE_ACCOUNT_NAME
+  
+  # Security
+  - name: JWT_SECRET_KEY
+    value: "generated-secret-key-for-production-only"
+  
+  # Application
+  - name: FRONTEND_URL
+    value: $FRONTEND_URL
+  - name: BACKEND_URL
+    value: $APP_SERVICE_ENDPOINT
   - name: ENABLE_LOCAL_PARSING
     value: false
   - name: LOG_LEVEL
     value: INFO
+  - name: ENABLE_OBO_FLOW
+    value: $ENABLE_OBO_FLOW

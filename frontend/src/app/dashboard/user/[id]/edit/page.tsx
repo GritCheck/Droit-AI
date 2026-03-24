@@ -5,39 +5,24 @@ import { _userList } from 'src/_mock/_user';
 
 import { UserEditView } from 'src/sections/user/view';
 
-// ----------------------------------------------------------------------
-
-export const metadata: Metadata = { title: `User edit | Dashboard - ${CONFIG.appName}` };
-
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
-export default function Page({ params }: Props) {
-  const { id } = params;
+// Metadata must now await params
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+
+  return {
+    title: `User ${id} Edit | Dashboard - ${CONFIG.appName}`,
+  };
+}
+
+export default async function Page({ params }: Props) {
+  // NEXT.JS 16 FIX: Must await params before destructuring
+  const { id } = await params;
 
   const currentUser = _userList.find((user) => user.id === id);
 
   return <UserEditView user={currentUser} />;
-}
-
-// ----------------------------------------------------------------------
-
-/**
- * [1] Default
- * Remove [1] and [2] if not using [2]
- * Will remove in Next.js v15
- */
-const dynamic = CONFIG.isStaticExport ? 'auto' : 'force-dynamic';
-export { dynamic };
-
-/**
- * [2] Static exports
- * https://nextjs.org/docs/app/building-your-application/deploying/static-exports
- */
-export async function generateStaticParams() {
-  if (CONFIG.isStaticExport) {
-    return _userList.map((user) => ({ id: user.id }));
-  }
-  return [];
 }
