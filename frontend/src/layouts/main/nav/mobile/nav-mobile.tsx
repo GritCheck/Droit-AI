@@ -88,16 +88,6 @@ export function NavMobile({ data, open, onClose, slots, sx }: NavMobileProps) {
           }}
         >
           <SignInButton fullWidth />
-
-          <Button
-            fullWidth
-            variant="contained"
-            rel="noopener"
-            target="_blank"
-            href={paths.minimalStore}
-          >
-            Purchase
-          </Button>
         </Box>
       )}
     </Drawer>

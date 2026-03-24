@@ -48,7 +48,6 @@ export function InvoicePDFDownload({ invoice, currentStatus }: InvoicePDFProps) 
       fileName={invoice?.invoiceNumber}
       style={{ textDecoration: 'none' }}
     >
-      {/* @ts-expect-error: https://github.com/diegomura/react-pdf/issues/2886 */}
       {({ loading }) => renderButton(loading)}
     </PDFDownloadLink>
   );

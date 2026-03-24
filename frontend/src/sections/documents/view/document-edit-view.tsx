@@ -1,6 +1,6 @@
 'use client';
 
-import type { IPackageItem } from 'src/types/package';
+import type { IDocumentItem } from 'src/types/document';
 
 import { paths } from 'src/routes/paths';
 
@@ -13,7 +13,7 @@ import { DocumentNewEditForm } from '../document-new-edit-form';
 // ----------------------------------------------------------------------
 
 type Props = {
-  package?: IPackageItem;
+  package?: IDocumentItem;
 };
 
 export function PackageEditView({ package: currentPackage }: Props) {

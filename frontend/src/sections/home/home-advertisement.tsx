@@ -108,18 +108,6 @@ const renderDescription = () => (
         justifyContent: { xs: 'center', md: 'flex-start' },
       }}
     >
-      <m.div variants={varFade('inRight', { distance: 24 })}>
-        <Button
-          color="primary"
-          size="large"
-          variant="contained"
-          target="_blank"
-          rel="noopener"
-          href={paths.minimalStore}
-        >
-          Purchase now
-        </Button>
-      </m.div>
 
       <m.div variants={varFade('inRight', { distance: 24 })}>
         <Button
