@@ -6,7 +6,6 @@ Run this to test APIs without Azure services
 import requests
 import json
 import time
-import pytest
 
 BASE_URL = "http://localhost:8000"
 

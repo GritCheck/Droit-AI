@@ -1,0 +1,68 @@
+# Azure Developer CLI hooks configuration
+predeploy:
+  windows:
+    shell: pwsh
+    run: |
+      # Get the project root and navigate to backend
+      $projectRoot = $PSScriptRoot
+      Write-Host "Project root: $projectRoot"
+      $backendPath = Join-Path $projectRoot "backend"
+      Write-Host "Backend path: $backendPath"
+      
+      Set-Location $backendPath
+      Write-Host "Changed to: $(Get-Location)"
+      
+      # List files to verify
+      Write-Host "Files in tests directory:"
+      Get-ChildItem tests -Filter "*.py" | Select-Object Name
+      
+      if (Test-Path ".\venv\Scripts\Activate.ps1") {
+        Write-Host "Activating virtual environment..."
+        .\venv\Scripts\Activate.ps1
+      }
+      
+      Write-Host "Running tests..."
+      python -m pytest tests/test_apis.py -v --tb=short
+      if ($LASTEXITCODE -ne 0) {
+        Write-Error "Tests failed"
+        exit 1
+      }
+  posix:
+    shell: bash
+    run: |
+      # Get the project root and navigate to backend
+      project_root="$(dirname "$0")"
+      echo "Project root: $project_root"
+      backend_path="$project_root/backend"
+      echo "Backend path: $backend_path"
+      
+      cd "$backend_path"
+      echo "Changed to: $(pwd)"
+      
+      # List files to verify
+      echo "Files in tests directory:"
+      ls tests/*.py
+      
+      if [ -f "venv/bin/activate" ]; then
+        echo "Activating virtual environment..."
+        source venv/bin/activate
+      fi
+      
+      echo "Running tests..."
+      python -m pytest tests/test_apis.py -v --tb=short
+      if [ $? -ne 0 ]; then
+        echo "Tests failed"
+        exit 1
+      fi
+
+postdeploy:
+  windows:
+    shell: pwsh
+    run: |
+      # Post-deployment verification
+      Write-Host "Deployment completed successfully!"
+  posix:
+    shell: bash
+    run: |
+      # Post-deployment verification
+      echo "Deployment completed successfully!"

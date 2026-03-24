@@ -3,12 +3,14 @@ Pydantic models for chat requests and responses
 """
 
 from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
 
 class ChatRequest(BaseModel):
     """Chat request with message and search options"""
+    model_config = ConfigDict(protected_namespaces=())
+    
     message: str = Field(..., min_length=1, max_length=2000, description="User message")
     conversation_id: Optional[str] = Field(None, description="Conversation ID for context")
     search_options: Optional[Dict[str, Any]] = Field(None, description="Search options")
@@ -30,6 +32,8 @@ class Citation(BaseModel):
 
 class ChatResponse(BaseModel):
     """Chat response with answer and citations"""
+    model_config = ConfigDict(protected_namespaces=())
+    
     answer: str
     citations: List[Citation]
     confidence_score: float
