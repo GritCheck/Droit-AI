@@ -1,0 +1,16 @@
+{
+  "name": "rag-frontend-tests",
+  "version": "1.0.0",
+  "description": "Test configuration for RAG frontend",
+  "scripts": {
+    "test:api": "node __tests__/test-api-integration.js",
+    "test:documents": "node __tests__/test-documents-api.js",
+    "test:ingestion": "node __tests__/test-ingestion-api.js",
+    "test:responsible": "node __tests__/test-responsible-api.js",
+    "test:security": "node __tests__/test-security-api.js",
+    "test:all": "npm run test:api && npm run test:documents && npm run test:ingestion && npm run test:responsible && npm run test:security"
+  },
+  "devDependencies": {
+    "axios": "^1.6.0"
+  }
+}
