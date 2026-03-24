@@ -104,18 +104,6 @@ export function MainLayout({
             <SignInButton />
 
             {/** @slot Purchase button */}
-            <Button
-              variant="contained"
-              rel="noopener"
-              target="_blank"
-              href={paths.minimalStore}
-              sx={(theme) => ({
-                display: 'none',
-                [theme.breakpoints.up(layoutQuery)]: { display: 'inline-flex' },
-              })}
-            >
-              Purchase
-            </Button>
           </Box>
         </>
       ),
