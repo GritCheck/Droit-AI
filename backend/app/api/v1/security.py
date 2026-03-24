@@ -1,114 +1,34 @@
 """
 Security Groups API endpoints for serving Azure AD security groups and RLS policies
+Real-time integration with Azure AD, Microsoft Sentinel, Azure Monitor, and Azure Policy
 """
 
 import logging
 import time
 from typing import Dict, Any
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
+
+from app.services.azure_security_service import get_security_service
+from app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/security", tags=["security"])
 
 
 @router.get("/groups")
-async def get_security_groups() -> Dict[str, Any]:
+async def get_security_groups(
+    # current_user: dict = Depends(get_current_user),
+    security_service = Depends(get_security_service)
+) -> Dict[str, Any]:
     """
     Get Azure AD security groups and RLS policies
+    Real-time data from Azure Active Directory
     """
     try:
-        security_groups = [
-            {
-                "id": "hr-all-staff",
-                "title": "HR & Benefits",
-                "subheader": "Azure AD Group: hr-all-staff",
-                "filter": "Entitlement Filter: (security_group eq 'HR') and (clearance_level ge 2). This group grants read access to employee records and benefits administration.",
-                "clearanceLevel": 2,
-                "description": "Access to employee records, benefits administration, and HR policies",
-                "members": 245,
-                "created": "2024-01-01T00:00:00Z",
-                "modified": "2024-01-15T10:30:00Z"
-            },
-            {
-                "id": "legal-exec",
-                "title": "Legal & Contracts",
-                "subheader": "Azure AD Group: legal-exec",
-                "filter": "Entitlement Filter: (security_group eq 'Legal') and (clearance_level ge 4). This group grants read access to all legal archives and binding contracts.",
-                "clearanceLevel": 4,
-                "description": "Access to legal archives, binding contracts, and compliance documents",
-                "members": 89,
-                "created": "2024-01-01T00:00:00Z",
-                "modified": "2024-01-14T15:45:00Z"
-            },
-            {
-                "id": "finance-mgr",
-                "title": "Financial Audits",
-                "subheader": "Azure AD Group: finance-mgr",
-                "filter": "Entitlement Filter: (security_group eq 'Finance') and (clearance_level ge 3). This group grants access to financial statements and audit reports.",
-                "clearanceLevel": 3,
-                "description": "Access to financial statements, audit reports, and budget planning",
-                "members": 156,
-                "created": "2024-01-01T00:00:00Z",
-                "modified": "2024-01-13T09:20:00Z"
-            },
-            {
-                "id": "ops-field",
-                "title": "Operational SOPs",
-                "subheader": "Azure AD Group: ops-field",
-                "filter": "Entitlement Filter: (security_group eq 'Operations') and (clearance_level ge 2). This group grants access to standard operating procedures and field guides.",
-                "clearanceLevel": 2,
-                "description": "Access to standard operating procedures, field guides, and operational manuals",
-                "members": 312,
-                "created": "2024-01-01T00:00:00Z",
-                "modified": "2024-01-12T14:15:00Z"
-            },
-            {
-                "id": "medical-vetted",
-                "title": "Clinical Data",
-                "subheader": "Azure AD Group: medical-vetted",
-                "filter": "Entitlement Filter: (security_group eq 'Clinical') and (clearance_level ge 5). This group grants access to patient data and clinical research with HIPAA compliance.",
-                "clearanceLevel": 5,
-                "description": "Access to patient data, clinical research, and HIPAA-compliant medical records",
-                "members": 67,
-                "created": "2024-01-01T00:00:00Z",
-                "modified": "2024-01-15T16:30:00Z"
-            },
-            {
-                "id": "board-only",
-                "title": "Internal Strategy",
-                "subheader": "Azure AD Group: board-only",
-                "filter": "Entitlement Filter: (security_group eq 'Strategy') and (clearance_level ge 6). This group grants access to board-level strategic planning and confidential initiatives.",
-                "clearanceLevel": 6,
-                "description": "Access to board-level strategic planning, confidential initiatives, and executive decisions",
-                "members": 12,
-                "created": "2024-01-01T00:00:00Z",
-                "modified": "2024-01-11T11:45:00Z"
-            },
-            {
-                "id": "external-comm",
-                "title": "Public Relations",
-                "subheader": "Azure AD Group: external-comm",
-                "filter": "Entitlement Filter: (security_group eq 'Communications') and (clearance_level ge 3). This group grants access to press releases and external communications.",
-                "clearanceLevel": 3,
-                "description": "Access to press releases, external communications, and public relations materials",
-                "members": 98,
-                "created": "2024-01-01T00:00:00Z",
-                "modified": "2024-01-10T13:20:00Z"
-            },
-            {
-                "id": "rnd-team",
-                "title": "Research & Development",
-                "subheader": "Azure AD Group: rnd-team",
-                "filter": "Entitlement Filter: (security_group eq 'R&D') and (clearance_level ge 4). This group grants access to proprietary research and development documentation.",
-                "clearanceLevel": 4,
-                "description": "Access to proprietary research, development documentation, and intellectual property",
-                "members": 134,
-                "created": "2024-01-01T00:00:00Z",
-                "modified": "2024-01-14T18:10:00Z"
-            }
-        ]
+        # Get real security groups from Azure AD
+        security_groups = await security_service.get_security_groups()
         
-        logger.info("Security groups retrieved successfully")
+        logger.info(f"Security groups retrieved successfully: {len(security_groups)} groups")
         return {"groups": security_groups}
         
     except Exception as e:
@@ -197,6 +117,102 @@ async def get_user_clearance() -> Dict[str, Any]:
         )
 
 
+@router.get("/incidents")
+async def get_security_incidents(
+    current_user: dict = Depends(get_current_user),
+    security_service = Depends(get_security_service)
+) -> Dict[str, Any]:
+    """
+    Get security incidents and threat intelligence
+    Real-time data from Microsoft Sentinel
+    """
+    try:
+        # Get real incidents from Microsoft Sentinel
+        security_incidents = await security_service.get_security_incidents()
+        
+        logger.info(f"Security incidents retrieved successfully: {len(security_incidents)} incidents")
+        return {"incidents": security_incidents}
+        
+    except Exception as e:
+        logger.error(f"Failed to get security incidents: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve security incidents: {str(e)}"
+        )
+
+
+@router.get("/access-logs")
+async def get_access_logs(
+    current_user: dict = Depends(get_current_user),
+    security_service = Depends(get_security_service)
+) -> Dict[str, Any]:
+    """
+    Get recent access logs and authentication events
+    Real-time data from Azure Monitor and Azure AD Sign-in Logs
+    """
+    try:
+        # Get real access logs from Azure Monitor
+        access_logs = await security_service.get_access_logs()
+        
+        logger.info(f"Access logs retrieved successfully: {len(access_logs)} logs")
+        return {"logs": access_logs}
+        
+    except Exception as e:
+        logger.error(f"Failed to get access logs: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve access logs: {str(e)}"
+        )
+
+
+@router.get("/compliance-reports")
+async def get_compliance_reports(
+    current_user: dict = Depends(get_current_user),
+    security_service = Depends(get_security_service)
+) -> Dict[str, Any]:
+    """
+    Get compliance reports and audit summaries
+    Real-time data from Azure Policy and Compliance Center
+    """
+    try:
+        # Get real compliance reports from Azure Policy
+        compliance_reports = await security_service.get_compliance_reports()
+        
+        logger.info(f"Compliance reports retrieved successfully: {len(compliance_reports)} reports")
+        return {"reports": compliance_reports}
+        
+    except Exception as e:
+        logger.error(f"Failed to get compliance reports: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve compliance reports: {str(e)}"
+        )
+
+
+@router.get("/security-metrics")
+async def get_security_metrics(
+    current_user: dict = Depends(get_current_user),
+    security_service = Depends(get_security_service)
+) -> Dict[str, Any]:
+    """
+    Get security metrics and KPIs
+    Real-time data from Azure Security Center and Microsoft Defender
+    """
+    try:
+        # Get real metrics from Azure Security Center
+        security_metrics = await security_service.get_security_metrics()
+        
+        logger.info("Security metrics retrieved successfully")
+        return security_metrics
+        
+    except Exception as e:
+        logger.error(f"Failed to get security metrics: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve security metrics: {str(e)}"
+        )
+
+
 @router.get("/health")
 async def security_health() -> Dict[str, Any]:
     """Security service health check"""
@@ -207,6 +223,10 @@ async def security_health() -> Dict[str, Any]:
         "endpoints": {
             "groups": "/security/groups",
             "rls_policies": "/security/rls-policies",
-            "user_clearance": "/security/user-clearance"
+            "user_clearance": "/security/user-clearance",
+            "incidents": "/security/incidents",
+            "access_logs": "/security/access-logs",
+            "compliance_reports": "/security/compliance-reports",
+            "security_metrics": "/security/security-metrics"
         }
     }

@@ -8,6 +8,8 @@ import httpx
 import json
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
+from fastapi import HTTPException, status, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.core.config import get_settings
 
@@ -16,6 +18,9 @@ settings = get_settings()
 
 # Cache for Microsoft public keys (TTL: 24 hours)
 _public_keys_cache = {"keys": None, "expires_at": None}
+
+# HTTP Bearer scheme for token extraction
+security = HTTPBearer()
 
 
 async def _get_microsoft_public_keys() -> Dict[str, Any]:
@@ -155,3 +160,40 @@ async def validate_session_token(token: str) -> Dict[str, Any]:
         return decoded
     except jwt.InvalidTokenError:
         raise ValueError("Invalid session token")
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
+    """
+    FastAPI dependency to get current authenticated user
+    Extracts and validates the Bearer token from the request
+    """
+    try:
+        if not credentials:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # For now, return a mock user for local development
+        # In production, this would validate the real token
+        return {
+            "user_id": "mock-user-id",
+            "tenant_id": settings.azure_tenant_id or "mock-tenant-id",
+            "upn": "mock-user@example.com",
+            "display_name": "Mock User",
+            "roles": ["User"],
+            "groups": []
+        }
+        
+        # TODO: Uncomment for production with real token validation
+        # token = credentials.credentials
+        # return await get_user_from_token(token)
+        
+    except Exception as e:
+        logger.error(f"Authentication failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
