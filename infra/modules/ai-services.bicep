@@ -30,11 +30,13 @@ resource openaiAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   properties: {
     networkAcls: {
       defaultAction: 'Allow'
+      
       ipRules: []
       virtualNetworkRules: []
     }
     publicNetworkAccess: 'Enabled'
     restore: false
+    customSubDomainName: '${appName}-openai'
   }
   tags: {
     azdServiceName: 'openai'
@@ -65,6 +67,9 @@ resource gpt4Deployment 'Microsoft.CognitiveServices/accounts/deployments@2023-0
 
 resource embeddingDeployment 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = {
   parent: openaiAccount
+  dependsOn: [
+    gpt4Deployment
+  ]
   name: embeddingDeploymentName
   sku: {
     name: 'Standard'

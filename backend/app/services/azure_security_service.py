@@ -21,6 +21,12 @@ try:
     from azure.mgmt.resource import ResourceManagementClient
     from msgraph import GraphServiceClient
     AZURE_SERVICES_AVAILABLE = True
+    
+    # Reduce Azure SDK logging verbosity
+    logging.getLogger('azure.core.pipeline.policies.http_logging_policy').setLevel(logging.WARNING)
+    logging.getLogger('azure.identity._internal.get_token_mixin').setLevel(logging.WARNING)
+    logging.getLogger('httpx').setLevel(logging.WARNING)
+    
 except ImportError as e:
     logger.warning(f"Azure SDK not fully available: {e}")
     AZURE_SERVICES_AVAILABLE = False

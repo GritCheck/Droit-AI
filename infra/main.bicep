@@ -101,9 +101,20 @@ resource docIntelRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04
 }
 
 resource contentSafetyRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid('${appName}-identity', '${appName}-contentsafety', 'CognitiveServicesUser')
+  name: guid('${appName}-contentsafety-${uniqueString(appName)}', 'CognitiveServicesUser')
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a97b65f3-24c7-4388-baec-2e87135dc908')
+    principalId: host.outputs.appServiceIdentityPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Storage Data Plane Access for App Service Managed Identity
+// This is CRITICAL - Management plane (Owner) != Data plane (file access)
+resource storageDataContributorAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid('${appName}-storage-data-plane-${uniqueString(appName)}', 'StorageBlobDataContributor')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
     principalId: host.outputs.appServiceIdentityPrincipalId
     principalType: 'ServicePrincipal'
   }

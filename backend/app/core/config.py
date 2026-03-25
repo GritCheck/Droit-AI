@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     cosmos_db_database_name: str = Field("rag-chat", env="COSMOS_DB_DATABASE_NAME")
     cosmos_db_container_name: str = Field("chat-history", env="COSMOS_DB_CONTAINER_NAME")
     
+    # Azure Storage
+    azure_storage_account_name: str = Field("", env="AZURE_STORAGE_ACCOUNT_NAME")
+    azure_storage_account_key: str = Field("", env="AZURE_STORAGE_ACCOUNT_KEY")
+    azure_storage_connection_string: str = Field("", env="AZURE_STORAGE_CONNECTION_STRING")
+    azure_storage_container_name: str = Field("documents", env="AZURE_STORAGE_CONTAINER_NAME")
+    
     # Application Configuration
     frontend_url: str = Field("http://localhost:3000", env="FRONTEND_URL")
     backend_url: str = Field("http://localhost:8000", env="BACKEND_URL")
