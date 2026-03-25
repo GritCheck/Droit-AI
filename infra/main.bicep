@@ -35,6 +35,21 @@ module aiServices 'modules/ai-services.bicep' = {
   }
 }
 
+// AI Services Outputs
+output docIntelAccountName string = aiServices.outputs.docIntelAccountName
+output docIntelAccountId string = aiServices.outputs.docIntelAccountId
+output docIntelEndpoint string = aiServices.outputs.docIntelEndpoint
+output docIntelKey string = aiServices.outputs.docIntelKey
+output contentSafetyAccountName string = aiServices.outputs.contentSafetyAccountName
+output contentSafetyAccountId string = aiServices.outputs.contentSafetyAccountId
+output contentSafetyEndpoint string = aiServices.outputs.contentSafetyEndpoint
+output contentSafetyKey string = aiServices.outputs.contentSafetyKey
+output openaiAccountName string = aiServices.outputs.openaiAccountName
+output openaiAccountId string = aiServices.outputs.openaiAccountId
+output openaiKey string = aiServices.outputs.openaiKey
+output chatDeploymentName string = aiServices.outputs.chatDeploymentName
+output embeddingDeploymentName string = aiServices.outputs.embeddingDeploymentName
+
 module host 'modules/host.bicep' = {
   name: 'hostDeployment'
   params: {

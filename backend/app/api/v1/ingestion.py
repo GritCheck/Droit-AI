@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Background
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from app.services.data_preprocessing_service import create_data_preprocessing_service, check_data_preprocessing_health
+from app.services.enhanced_data_preprocessing_service import create_enhanced_data_preprocessing_service, check_enhanced_data_preprocessing_health
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/ingestion", tags=["ingestion"])
@@ -47,83 +47,23 @@ class HealthResponse(BaseModel):
     details: Dict[str, Any]
     error: Optional[str] = None
 
-
-@router.post("/folder", response_model=IngestFolderResponse)
-async def ingest_folder(
-    request: IngestFolderRequest,
-    background_tasks: BackgroundTasks
-):
-    """
-    Process all documents in a folder and load to Azure services
-    
-    This endpoint:
-    1. Scans the specified folder for supported document types
-    2. Processes each document with Azure Document Intelligence
-    3. Uploads original documents to Azure Storage
-    4. Indexes processed chunks in Azure AI Search
-    5. Applies security metadata for Azure AD groups
-    """
-    try:
-        logger.info(f"Starting folder ingestion for: {request.folder_path}")
-        
-        # Validate folder path
-        folder_path = Path(request.folder_path)
-        if not folder_path.exists():
-            raise HTTPException(
-                status_code=404, 
-                detail=f"Folder not found: {request.folder_path}"
-            )
-        
-        if not folder_path.is_dir():
-            raise HTTPException(
-                status_code=400,
-                detail=f"Path is not a folder: {request.folder_path}"
-            )
-        
-        # Create preprocessing service
-        service = create_data_preprocessing_service()
-        
-        # Process folder (this could be a long-running operation)
-        results = await service.process_document_folder(
-            folder_path=str(folder_path),
-            allowed_groups=request.allowed_groups,
-            container_name=request.container_name
-        )
-        
-        logger.info(f"Folder ingestion completed: {results}")
-        
-        return IngestFolderResponse(
-            success=True,
-            message=f"Successfully processed {results['processed']} out of {results['total_files']} documents",
-            results=results
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Folder ingestion failed: {str(e)}")
-        return IngestFolderResponse(
-            success=False,
-            message="Folder ingestion failed",
-            error=str(e)
-        )
-
-
 @router.post("/upload", response_model=IngestFolderResponse)
 async def upload_and_ingest(
-    background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(...),
     allowed_groups: Optional[str] = Form(default="default-users"),
-    container_name: Optional[str] = Form(default=None)
+    container_name: Optional[str] = Form(default=None),
+    user_folder: Optional[str] = Form(default=None),  
+    group_ids: Optional[str] = Form(default=None)  
 ):
     """
-    Upload and ingest multiple files
+    Upload and ingest multiple files with user-specific folders and metadata
     
     This endpoint:
     1. Accepts multiple file uploads
-    2. Saves them to a temporary folder
+    2. Saves them to user-specific folder structure
     3. Processes them with Azure Document Intelligence
-    4. Uploads to Azure Storage and indexes in Azure AI Search
+    4. Uploads to Azure Storage with metadata (group IDs, user folder)
+    5. Indexes in Azure AI Search with proper filtering
     """
     try:
         logger.info(f"Starting upload and ingestion for {len(files)} files")
@@ -134,10 +74,14 @@ async def upload_and_ingest(
                 detail="No files provided"
             )
         
-        # Parse allowed groups
+        # Parse allowed groups and group IDs
         groups = [group.strip() for group in allowed_groups.split(",")] if allowed_groups else ["default-users"]
+        group_id_list = [gid.strip() for gid in group_ids.split(",")] if group_ids else []
         
-        # Create temporary folder
+        # Determine user folder (use provided or generate from context)
+        target_user_folder = user_folder or "default-user"
+        
+        # Create temporary folder structure
         with tempfile.TemporaryDirectory() as temp_dir:
             # Save uploaded files
             for file in files:
@@ -147,21 +91,23 @@ async def upload_and_ingest(
                 with open(file_path, "wb") as f:
                     f.write(content)
                 
-                logger.info(f"Saved uploaded file: {file.filename}")
+                logger.info(f"Saved uploaded file: {file.filename} for user: {target_user_folder}")
             
-            # Process files
-            service = create_data_preprocessing_service()
+            # Process files with enhanced metadata
+            service = create_enhanced_data_preprocessing_service()
             results = await service.process_document_folder(
                 folder_path=temp_dir,
                 allowed_groups=groups,
-                container_name=container_name
+                container_name=container_name,
+                user_folder=target_user_folder,
+                group_ids=group_id_list
             )
             
             logger.info(f"Upload and ingestion completed: {results}")
             
             return IngestFolderResponse(
                 success=True,
-                message=f"Successfully processed {results['processed']} out of {results['total_files']} uploaded files",
+                message=f"Successfully processed {results['processed']} out of {results['total_files']} documents for user '{target_user_folder}'",
                 results=results
             )
         
@@ -182,7 +128,7 @@ async def get_ingestion_status(container_name: Optional[str] = None):
     Get status of processed documents in Azure Storage and Azure AI Search
     """
     try:
-        service = create_data_preprocessing_service()
+        service = create_enhanced_data_preprocessing_service()
         status = await service.get_processing_status(container_name)
         
         return IngestStatusResponse(
@@ -199,30 +145,82 @@ async def get_ingestion_status(container_name: Optional[str] = None):
         )
 
 
-@router.get("/health", response_model=HealthResponse)
-async def health_check():
+@router.get("/container-structure", response_model=HealthResponse)
+async def get_container_structure():
     """
-    Health check for data preprocessing service
+    Get Azure Storage container structure showing user folders and hierarchy
     """
     try:
-        health = await check_data_preprocessing_health()
+        from app.services.azure_storage_service import get_storage_service
+        
+        storage_service = get_storage_service()
+        
+        # List all blobs to show hierarchy
+        documents = await storage_service.list_documents(max_results=1000)
+        
+        # Analyze folder structure
+        user_folders = {}
+        root_files = []
+        
+        for doc in documents:
+            # Use the full path instead of just the name
+            path = doc.get("path", doc.get("name", ""))
+            if "/" in path:
+                # File is in a user folder
+                folder, filename = path.split("/", 1)
+                if folder not in user_folders:
+                    user_folders[folder] = []
+                user_folders[folder].append({
+                    "name": filename,
+                    "size": doc.get("size", 0),
+                    "last_modified": doc.get("lastModified"),
+                    "content_type": doc.get("contentType"),
+                    "url": doc.get("url")
+                })
+            else:
+                # Root level file
+                root_files.append({
+                    "name": path,
+                    "size": doc.get("size", 0),
+                    "last_modified": doc.get("lastModified"),
+                    "content_type": doc.get("contentType"),
+                    "url": doc.get("url")
+                })
         
         return HealthResponse(
-            status=health["status"],
-            service=health["service"],
-            details=health,
-            error=health.get("error")
+            status="success",
+            service="Container Structure Analysis",
+            details={
+                "container_name": "documents",
+                "total_files": len(documents),
+                "user_folders": user_folders,
+                "root_files": root_files,
+                "folder_count": len(user_folders),
+                "hierarchical_storage": True,
+                "supported_features": [
+                    "User-specific folders",
+                    "Group ID metadata",
+                    "Query filtering by groups",
+                    "Hierarchical blob storage"
+                ]
+            }
         )
         
     except Exception as e:
-        logger.error(f"Health check failed: {str(e)}")
+        logger.error(f"Container structure analysis failed: {str(e)}")
         return HealthResponse(
-            status="unhealthy",
-            service="DataPreprocessingService",
-            details={},
+            status="error",
+            service="Container Structure Analysis",
+            details={"error": str(e)},
             error=str(e)
         )
 
+
+@router.get("/health", response_model=HealthResponse)
+async def ingestion_health():
+    """Enhanced ingestion service health check"""
+    return check_enhanced_data_preprocessing_health()
+        
 
 @router.delete("/cleanup")
 async def cleanup_processed_documents(

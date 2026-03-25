@@ -40,15 +40,19 @@ class DataPreprocessingService:
         self, 
         folder_path: str, 
         allowed_groups: Optional[List[str]] = None,
-        container_name: Optional[str] = None
+        container_name: Optional[str] = None,
+        user_folder: Optional[str] = None,
+        group_ids: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
-        Process all documents in a folder and load to Azure services
+        Process all documents in a folder and load to Azure services with user folders and metadata
         
         Args:
             folder_path: Path to folder containing documents
             allowed_groups: List of Azure AD groups that can access these documents
-            container_name: Azure Storage container name (defaults to configured)
+            container_name: Azure Storage container name (defaults to settings)
+            user_folder: User-specific folder name for hierarchical storage
+            group_ids: List of Azure AD group IDs for query filtering
             
         Returns:
             Processing results summary

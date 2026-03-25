@@ -128,14 +128,14 @@ resource contentSafetyAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' 
 output openaiAccountName string = openaiAccount.name
 output openaiAccountId string = openaiAccount.id
 output openaiEndpoint string = openaiAccount.properties.endpoint
-output openaiKey string = listKeys(openaiAccount.id, openaiAccount.apiVersion).key1
+output openaiKey string = openaiAccount.listKeys().key1
 output chatDeploymentName string = gpt4Deployment.name
 output embeddingDeploymentName string = embeddingDeployment.name
 output docIntelAccountName string = docIntelAccount.name
 output docIntelAccountId string = docIntelAccount.id
 output docIntelEndpoint string = docIntelAccount.properties.endpoint
-output docIntelKey string = listKeys(docIntelAccount.id, docIntelAccount.apiVersion).key1
+output docIntelKey string = docIntelAccount.listKeys().key1
 output contentSafetyAccountName string = contentSafetyAccount.name
 output contentSafetyAccountId string = contentSafetyAccount.id
 output contentSafetyEndpoint string = contentSafetyAccount.properties.endpoint
-output contentSafetyKey string = listKeys(contentSafetyAccount.id, contentSafetyAccount.apiVersion).key1
+output contentSafetyKey string = contentSafetyAccount.listKeys().key1
