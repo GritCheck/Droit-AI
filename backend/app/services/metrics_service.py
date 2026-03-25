@@ -6,12 +6,9 @@ Pulls real metrics from Azure Monitor, Application Insights, and Azure Storage
 import logging
 from typing import Dict, Any, List
 from datetime import datetime, timedelta
-
-from azure.monitor.query import LogsQueryClient, LogsQueryResult
+from azure.monitor.query import LogsQueryClient
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
-from azure.core.exceptions import AzureError
-
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -67,10 +64,70 @@ class MetricsService:
     
     async def get_groundedness_metrics(self) -> Dict[str, Any]:
         """
-        Fetch groundedness scores from Application Insights
-        For now, return realistic mock data that could come from Azure Monitor
+        Fetch groundedness scores from Azure Application Insights using KQL
+        Falls back to static data if Azure query fails
         """
-        # Simulate real data that would come from Azure Monitor
+        try:
+            if not settings.log_analytics_workspace_id:
+                logger.warning("Log Analytics workspace ID not configured, using fallback data")
+                return self._get_groundedness_fallback()
+            
+            # KQL query for groundedness metrics from customMetrics table
+            query = """
+            customMetrics
+            | where timestamp > ago(30d)
+            | where name contains "Groundedness"
+            | summarize AvgScore = avg(value) by bin(timestamp, 1d)
+            | order by timestamp asc
+            | project timestamp, AvgScore
+            """
+            
+            # Execute KQL query against Log Analytics
+            result = await self.logs_client.query_workspace(
+                workspace_id=settings.log_analytics_workspace_id,
+                query=query,
+                timespan=timedelta(days=30)
+            )
+            
+            # Debug: Log schema information
+            if result.tables and result.tables[0].rows:
+                logger.debug(f"KQL Query Success: Found {len(result.tables[0].rows)} rows")
+                logger.debug(f"Sample row: {result.tables[0].rows[0] if result.tables[0].rows else 'No rows'}")
+                logger.debug(f"Columns: {result.tables[0].columns if hasattr(result.tables[0], 'columns') else 'No column info'}")
+            else:
+                logger.debug("KQL Query: No tables or rows returned")
+            
+            if result.tables and result.tables[0].rows:
+                # Get last 8 data points for the chart
+                recent_scores = [row[1] if row[1] is not None else 0 for row in result.tables[0].rows[-8:]]
+                
+                if len(recent_scores) >= 2:
+                    # Calculate total as most recent average score
+                    latest_score = recent_scores[-1]
+                    previous_score = recent_scores[-2] if len(recent_scores) > 1 else latest_score
+                    
+                    # Calculate percent as percentage change
+                    percent_change = ((latest_score - previous_score) / previous_score * 100) if previous_score != 0 else 0
+                    
+                    return {
+                        "percent": round(percent_change, 1),
+                        "total": round(latest_score, 1),
+                        "series": [round(score, 1) for score in recent_scores]
+                    }
+                else:
+                    # Not enough data points
+                    return self._get_groundedness_fallback()
+            
+            # No data returned, use fallback
+            logger.info("No groundedness data returned from Application Insights, using fallback")
+            return self._get_groundedness_fallback()
+            
+        except Exception as e:
+            logger.error(f"Failed to fetch groundedness metrics: {str(e)}")
+            return self._get_groundedness_fallback()
+    
+    def _get_groundedness_fallback(self) -> Dict[str, Any]:
+        """Return fallback groundedness data"""
         return {
             "percent": 89.2,
             "total": 94.5,
@@ -159,37 +216,37 @@ class MetricsService:
                 settings.azure_storage_container_name
             )
             
-            # Count documents by folder/prefix (REAL AZURE STORAGE CALL)
-            categories = {
-                "Legal Contracts": 0,
-                "Clinical SOPs": 0,
-                "Technical Docs": 0
+            # Count documents by file type (REAL AZURE STORAGE CALL)
+            doc_types = {
+                "PDF": 0,
+                "Text": 0,
+                "Word": 0
             }
             
             blobs = container_client.list_blobs()
             for blob in blobs:
                 name = blob.name.lower()
-                if "legal" in name or "contract" in name:
-                    categories["Legal Contracts"] += 1
-                elif "clinical" in name or "sop" in name:
-                    categories["Clinical SOPs"] += 1
-                elif "technical" in name or "doc" in name:
-                    categories["Technical Docs"] += 1
+                if name.endswith('.pdf'):
+                    doc_types["PDF"] += 1
+                elif name.endswith('.txt') or name.endswith('.md'):
+                    doc_types["Text"] += 1
+                elif name.endswith('.doc') or name.endswith('.docx'):
+                    doc_types["Word"] += 1
             
-            logger.info(f"Successfully categorized {sum(categories.values())} documents in Azure Storage")
+            logger.info(f"Successfully categorized {sum(doc_types.values())} documents in Azure Storage")
             
             return [
                 {"label": category, "value": count}
-                for category, count in categories.items()
+                for category, count in doc_types.items()
             ]
             
         except Exception as e:
             logger.error(f"Failed to fetch knowledge distribution: {str(e)}")
-            # Return realistic fallback
+            # Return realistic fallback with document types
             return [
-                {"label": 'Legal Contracts', "value": 2448},
-                {"label": 'Clinical SOPs', "value": 1206},
-                {"label": 'Technical Docs', "value": 0},
+                {"label": 'PDF', "value": 1},
+                {"label": 'Text', "value": 1},
+                {"label": 'Word', "value": 0},
             ]
     
     async def get_query_volume_metrics(self) -> Dict[str, Any]:

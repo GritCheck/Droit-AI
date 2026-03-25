@@ -69,7 +69,6 @@ export interface DashboardWelcome {
 }
 
 export interface DashboardOverview {
-  welcome: DashboardWelcome;
   stats: {
     groundedness: DashboardStats;
     indexing: DashboardStats;

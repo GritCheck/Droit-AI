@@ -55,12 +55,12 @@ export function OverviewAppView() {
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 8 }}>
           <AppWelcome
-            title={dashboardData.welcome.title}
-            description={dashboardData.welcome.description}
+            title="Welcome to Droit AI Workspace ⚖️"
+            description="Azure-governed intelligence for regulated industries."
             img={<SeoIllustration hideBackground />}
             action={
-              <Button variant="contained" color="primary" href={dashboardData.welcome.actionHref}>
-                {dashboardData.welcome.actionText}
+              <Button variant="contained" color="primary" href="/user">
+                Explore Knowledge Base
               </Button>
             }
           />
@@ -72,7 +72,7 @@ export function OverviewAppView() {
 
         <Grid size={{ xs: 12, md: 4 }}>
           <AppWidgetSummary
-              title={dashboardData.stats.groundedness.title}
+              title="Groundedness Score"
               percent={dashboardData.stats.groundedness.percent}
               total={dashboardData.stats.groundedness.total}
               chart={{
