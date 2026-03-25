@@ -61,6 +61,10 @@ class Settings(BaseSettings):
     enable_detailed_logging: bool = Field(False, env="ENABLE_DETAILED_LOGGING")
     enable_metrics: bool = Field(True, env="ENABLE_METRICS")
     
+    # Azure Monitoring Configuration
+    application_insights_connection_string: Optional[str] = Field(None, env="APPLICATIONINSIGHTS_CONNECTION_STRING")
+    log_analytics_workspace_id: Optional[str] = Field(None, env="LOG_ANALYTICS_WORKSPACE_ID")
+    
     # Local Development
     local_docs_path: str = Field("./data/raw", env="LOCAL_DOCS_PATH")
     local_processed_path: str = Field("./data/processed", env="LOCAL_PROCESSED_PATH")

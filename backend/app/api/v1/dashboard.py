@@ -1,11 +1,13 @@
 """
-Dashboard API endpoints for serving static data and metrics
+Dashboard API endpoints for serving live metrics from Azure Monitor
 """
 
 import logging
-import time
 from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, status
+import time
+
+from app.services.metrics_service import metrics_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -15,8 +17,50 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 async def get_dashboard_overview() -> Dict[str, Any]:
     """
     Get dashboard overview data including stats, charts, and metrics
+    Fetches live data from Azure Monitor with fallback to static data
     """
     try:
+        # Fetch live metrics in parallel
+        import asyncio
+        groundedness_task = metrics_service.get_groundedness_metrics()
+        indexing_task = metrics_service.get_indexing_metrics()
+        compliance_task = metrics_service.get_compliance_metrics()
+        distribution_task = metrics_service.get_knowledge_distribution()
+        volume_task = metrics_service.get_query_volume_metrics()
+        token_task = metrics_service.get_token_usage_metrics()
+        
+        # Wait for all metrics to complete
+        groundedness, indexing, compliance, distribution, volume, tokens = await asyncio.gather(
+            groundedness_task, indexing_task, compliance_task, distribution_task, volume_task, token_task,
+            return_exceptions=True
+        )
+        
+        # Handle exceptions and use fallback data
+        groundedness = groundedness if not isinstance(groundedness, Exception) else {
+            "percent": 2.6, "total": 4.9, "series": [15, 18, 12, 51, 68, 11, 39, 37]
+        }
+        indexing = indexing if not isinstance(indexing, Exception) else {
+            "percent": 0.2, "total": 2448, "series": [20, 41, 63, 33, 28, 35, 50, 46]
+        }
+        compliance = compliance if not isinstance(compliance, Exception) else {
+            "percent": -100, "total": 0, "series": [18, 19, 31, 8, 16, 37, 12, 33]
+        }
+        distribution = distribution if not isinstance(distribution, Exception) else [
+            {"label": 'Legal Contracts', "value": 2448},
+            {"label": 'Clinical SOPs', "value": 1206},
+            {"label": 'Technical Docs', "value": 0},
+        ]
+        volume = volume if not isinstance(volume, Exception) else {
+            "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            "series": [
+                {"name": 'Grounded', "data": [{"name": 'Grounded', "data": [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16]}]},
+                {"name": 'Safety-Filtered', "data": [{"name": 'Safety-Filtered', "data": [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16]}]}
+            ]
+        }
+        tokens = tokens if not isinstance(tokens, Exception) else {
+            "total": 55566, "series": 75
+        }
+        
         dashboard_data = {
             "welcome": {
                 "title": "Welcome to Droit AI Workspace ⚖️",
@@ -27,53 +71,30 @@ async def get_dashboard_overview() -> Dict[str, Any]:
             "stats": {
                 "groundedness": {
                     "title": "Groundedness Score",
-                    "percent": 2.6,
-                    "total": 4.9,
                     "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                    "series": [15, 18, 12, 51, 68, 11, 39, 37]
+                    **groundedness
                 },
                 "indexing": {
                     "title": "Indexed Documents (ADLS)",
-                    "percent": 0.2,
-                    "total": 2448,
                     "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                    "series": [20, 41, 63, 33, 28, 35, 50, 46]
+                    **indexing
                 },
                 "compliance": {
                     "title": "Compliance Violations",
-                    "percent": -100,
-                    "total": 0,
                     "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                    "series": [18, 19, 31, 8, 16, 37, 12, 33]
+                    **compliance
                 }
             },
             "charts": {
                 "distribution": {
                     "title": "Knowledge Source Distribution",
                     "subheader": "",
-                    "series": [
-                        {"label": 'Legal Contracts', "value": 2448},
-                        {"label": 'Clinical SOPs', "value": 1206},
-                        {"label": 'Technical Docs', "value": 0},
-                    ]
+                    "series": distribution
                 },
                 "volume": {
                     "title": "Query Volume & Accuracy",
                     "subheader": "(+43%) grounded responses than last year",
-                    "categories": [
-                        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                    ],
-                    "series": [
-                        {
-                            "name": 'Grounded',
-                            "data": [{"name": 'Grounded', "data": [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16]}]
-                        },
-                        {
-                            "name": 'Safety-Filtered',
-                            "data": [{"name": 'Safety-Filtered', "data": [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16]}]
-                        }
-                    ]
+                    **volume
                 }
             },
             "audit": {
@@ -89,15 +110,15 @@ async def get_dashboard_overview() -> Dict[str, Any]:
             "widgets": {
                 "optimization": {
                     "title": "Index Optimization",
-                    "total": 48,
+                    "total": indexing.get("total", 48),
                     "icon": "solar:user-rounded-bold",
-                    "series": 48
+                    "series": indexing.get("total", 48)
                 },
                 "azureTokens": {
                     "title": "Azure Token Usage",
-                    "total": 55566,
+                    "total": tokens.get("total", 55566),
                     "icon": "fluent:mail-24-filled",
-                    "series": 75
+                    "series": tokens.get("series", 75)
                 }
             },
             "recent": {
@@ -120,30 +141,47 @@ async def get_dashboard_overview() -> Dict[str, Any]:
 @router.get("/stats")
 async def get_dashboard_stats() -> Dict[str, Any]:
     """
-    Get dashboard statistics data
+    Get dashboard statistics data with live Azure metrics
     """
     try:
+        # Fetch live metrics in parallel
+        import asyncio
+        groundedness_task = metrics_service.get_groundedness_metrics()
+        indexing_task = metrics_service.get_indexing_metrics()
+        compliance_task = metrics_service.get_compliance_metrics()
+        
+        # Wait for all metrics to complete
+        groundedness, indexing, compliance = await asyncio.gather(
+            groundedness_task, indexing_task, compliance_task,
+            return_exceptions=True
+        )
+        
+        # Handle exceptions and use fallback data
+        groundedness = groundedness if not isinstance(groundedness, Exception) else {
+            "percent": 2.6, "total": 4.9, "series": [15, 18, 12, 51, 68, 11, 39, 37]
+        }
+        indexing = indexing if not isinstance(indexing, Exception) else {
+            "percent": 0.2, "total": 2448, "series": [20, 41, 63, 33, 28, 35, 50, 46]
+        }
+        compliance = compliance if not isinstance(compliance, Exception) else {
+            "percent": -100, "total": 0, "series": [18, 19, 31, 8, 16, 37, 12, 33]
+        }
+        
         stats_data = {
             "groundedness": {
                 "title": "Groundedness Score",
-                "percent": 2.6,
-                "total": 4.9,
                 "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                "series": [15, 18, 12, 51, 68, 11, 39, 37]
+                **groundedness
             },
             "indexing": {
                 "title": "Indexed Documents (ADLS)",
-                "percent": 0.2,
-                "total": 2448,
                 "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                "series": [20, 41, 63, 33, 28, 35, 50, 46]
+                **indexing
             },
             "compliance": {
                 "title": "Compliance Violations",
-                "percent": -100,
-                "total": 0,
                 "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                "series": [18, 19, 31, 8, 16, 37, 12, 33]
+                **compliance
             }
         }
         
@@ -161,36 +199,44 @@ async def get_dashboard_stats() -> Dict[str, Any]:
 @router.get("/charts")
 async def get_dashboard_charts() -> Dict[str, Any]:
     """
-    Get dashboard charts data
+    Get dashboard charts data with live Azure metrics
     """
     try:
+        # Fetch live metrics in parallel
+        import asyncio
+        distribution_task = metrics_service.get_knowledge_distribution()
+        volume_task = metrics_service.get_query_volume_metrics()
+        
+        # Wait for all metrics to complete
+        distribution, volume = await asyncio.gather(
+            distribution_task, volume_task,
+            return_exceptions=True
+        )
+        
+        # Handle exceptions and use fallback data
+        distribution = distribution if not isinstance(distribution, Exception) else [
+            {"label": 'Legal Contracts', "value": 2448},
+            {"label": 'Clinical SOPs', "value": 1206},
+            {"label": 'Technical Docs', "value": 0},
+        ]
+        volume = volume if not isinstance(volume, Exception) else {
+            "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            "series": [
+                {"name": 'Grounded', "data": [{"name": 'Grounded', "data": [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16]}]},
+                {"name": 'Safety-Filtered', "data": [{"name": 'Safety-Filtered', "data": [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16]}]}
+            ]
+        }
+        
         charts_data = {
             "distribution": {
                 "title": "Knowledge Source Distribution",
                 "subheader": "",
-                "series": [
-                    {"label": 'Legal Contracts', "value": 2448},
-                    {"label": 'Clinical SOPs', "value": 1206},
-                    {"label": 'Technical Docs', "value": 0},
-                ]
+                "series": distribution
             },
             "volume": {
                 "title": "Query Volume & Accuracy",
                 "subheader": "(+43%) grounded responses than last year",
-                "categories": [
-                    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                ],
-                "series": [
-                    {
-                        "name": 'Grounded',
-                        "data": [{"name": 'Grounded', "data": [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16]}]
-                    },
-                    {
-                        "name": 'Safety-Filtered',
-                        "data": [{"name": 'Safety-Filtered', "data": [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16]}]
-                    }
-                ]
+                **volume
             }
         }
         
@@ -208,21 +254,36 @@ async def get_dashboard_charts() -> Dict[str, Any]:
 @router.get("/widgets")
 async def get_dashboard_widgets() -> Dict[str, Any]:
     """
-    Get dashboard widgets data
+    Get dashboard widgets data with live Azure metrics
     """
     try:
+        # Fetch live metrics in parallel
+        import asyncio
+        indexing_task = metrics_service.get_indexing_metrics()
+        token_task = metrics_service.get_token_usage_metrics()
+        
+        # Wait for all metrics to complete
+        indexing, tokens = await asyncio.gather(
+            indexing_task, token_task,
+            return_exceptions=True
+        )
+        
+        # Handle exceptions and use fallback data
+        indexing = indexing if not isinstance(indexing, Exception) else {"total": 48}
+        tokens = tokens if not isinstance(tokens, Exception) else {"total": 55566, "series": 75}
+        
         widgets_data = {
             "optimization": {
                 "title": "Index Optimization",
-                "total": 48,
+                "total": indexing.get("total", 48),
                 "icon": "solar:user-rounded-bold",
-                "series": 48
+                "series": indexing.get("total", 48)
             },
             "azureTokens": {
                 "title": "Azure Token Usage",
-                "total": 55566,
+                "total": tokens.get("total", 55566),
                 "icon": "fluent:mail-24-filled",
-                "series": 75
+                "series": tokens.get("series", 75)
             }
         }
         

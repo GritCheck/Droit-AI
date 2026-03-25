@@ -5,7 +5,7 @@ Chat API endpoints with Answer & Cite orchestrator
 import logging
 import uuid
 import time
-from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi import APIRouter, Depends, HTTPException, Security, status, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.models.chat import (
@@ -31,7 +31,8 @@ settings = get_settings()
 
 @router.post("/ask", response_model=ChatResponse)
 async def ask_question(
-    request: ChatRequest,
+    chat_request: ChatRequest,
+    http_request: Request,
     credentials: HTTPAuthorizationCredentials = Security(security),
     search_service: GovernedSearchService = Depends(GovernedSearchService),
     llm_service: LLMOrchestrator = Depends(LLMOrchestrator),
@@ -43,7 +44,7 @@ async def ask_question(
     """
     start_time = time.time()
     
-    with OperationTimer("chat_ask", request=request):
+    with OperationTimer("chat_ask", request=http_request):
         try:
             # Extract and validate OBO token
             access_token = credentials.credentials
@@ -53,20 +54,20 @@ async def ask_question(
             log_security_event(
                 event_type="authentication_success",
                 message=f"User authenticated successfully: {user_context.user_id}",
-                request=request,
+                request=http_request,
                 user_context={"user_id": user_context.user_id, "tenant_id": user_context.tenant_id}
             )
             
             # Sanitize user input
-            sanitized_message = sanitize_input(request.message, "search_query")
+            sanitized_message = sanitize_input(chat_request.message, "search_query")
             if not sanitized_message:
                 log_error(
                     message="Message sanitization resulted in empty content",
-                    request=request,
+                    request=http_request,
                     user_context={"user_id": user_context.user_id},
                     severity=ErrorSeverity.MEDIUM,
                     category=ErrorCategory.VALIDATION,
-                    original_message_length=len(request.message)
+                    original_message_length=len(chat_request.message)
                 )
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -74,14 +75,14 @@ async def ask_question(
                 )
             
             # Generate conversation/message IDs
-            conversation_id = request.conversation_id or str(uuid.uuid4())
+            conversation_id = chat_request.conversation_id or str(uuid.uuid4())
             message_id = str(uuid.uuid4())
             
             # Step 1: Search for relevant documents
-            with OperationTimer("search_documents", request=request):
+            with OperationTimer("search_documents", request=http_request):
                 search_request = SearchRequest(
                     query=sanitized_message,
-                    top_k=request.max_documents,
+                    top_k=chat_request.max_documents,
                     semantic_ranking=True,
                     include_facets=False
                 )
@@ -91,7 +92,7 @@ async def ask_question(
             if not search_result.documents:
                 log_error(
                     message="No search results found for user query",
-                    request=request,
+                    request=http_request,
                     user_context={"user_id": user_context.user_id},
                     severity=ErrorSeverity.LOW,
                     category=ErrorCategory.BUSINESS_LOGIC,
@@ -114,7 +115,7 @@ async def ask_question(
                 )
             
             # Step 2: Generate grounded answer with citations
-            with OperationTimer("generate_answer", request=request):
+            with OperationTimer("generate_answer", request=http_request):
                 generated_answer = await llm_service.generate_answer(
                     sanitized_message,
                     search_result,
@@ -123,8 +124,8 @@ async def ask_question(
             
             # Step 3: Generate follow-up questions if requested
             follow_up_questions = []
-            if request.include_follow_up:
-                with OperationTimer("generate_follow_up", request=request):
+            if chat_request.include_follow_up:
+                with OperationTimer("generate_follow_up", request=http_request):
                     follow_up_questions = await llm_service.generate_follow_up_questions(
                         sanitized_message,
                         generated_answer.answer,
@@ -132,7 +133,7 @@ async def ask_question(
                     )
             
             # Step 4: Store conversation history
-            with OperationTimer("store_history", request=request):
+            with OperationTimer("store_history", request=http_request):
                 await history_service.store_message(
                     conversation_id=conversation_id,
                     user_id=user_context.user_id,
@@ -180,7 +181,7 @@ async def ask_question(
             log_performance(
                 operation="chat_completed",
                 duration=time.time() - start_time,
-                request=request,
+                request=http_request,
                 confidence_score=response.confidence_score,
                 citations_count=len(response.citations),
                 safety_passed=response.safety_passed
@@ -198,7 +199,7 @@ async def ask_question(
             log_security_event(
                 event_type="authentication_failed",
                 message=f"Authentication failed: {str(e)}",
-                request=request,
+                request=http_request,
                 error=str(e)
             )
             logger.warning(f"Authentication failed: {str(e)}")
@@ -211,7 +212,7 @@ async def ask_question(
             log_error(
                 message="Chat request failed with unexpected error",
                 exception=e,
-                request=request,
+                request=http_request,
                 severity=ErrorSeverity.HIGH,
                 category=ErrorCategory.SYSTEM,
                 operation="chat_ask"

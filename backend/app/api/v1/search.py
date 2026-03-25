@@ -7,7 +7,6 @@ import logging
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-import asyncio
 import time
 from pydantic import BaseModel, Field
 from pathlib import Path
@@ -17,11 +16,9 @@ from app.models.search import (
     SearchResult, 
     SearchSuggestionRequest,
     SearchSuggestionResponse,
-    FacetedSearchRequest,
     FacetedSearchResponse
 )
 from app.services.search_service import GovernedSearchService, UserContext
-from app.core.auth import verify_obo_token, get_user_from_token
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)

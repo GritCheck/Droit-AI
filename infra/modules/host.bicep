@@ -19,6 +19,12 @@ param pythonRuntimeVersion string = 'PYTHON|3.11'
 @description('App startup command')
 param appCommandLine string = './startup.sh'
 
+@description('Application Insights Connection String')
+param appInsightsConnectionString string = ''
+
+@description('Log Analytics Workspace ID')
+param logAnalyticsWorkspaceId string = ''
+
 // App Service Plan
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
   name: '${appName}-plan'
@@ -115,6 +121,14 @@ resource appService 'Microsoft.Web/sites@2023-01-01' = {
         {
           name: 'PYTHONPATH'
           value: '/home/site/wwwroot'
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appInsightsConnectionString
+        }
+        {
+          name: 'LOG_ANALYTICS_WORKSPACE_ID'
+          value: logAnalyticsWorkspaceId
         }
       ]
       connectionStrings: []
