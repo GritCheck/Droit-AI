@@ -7,7 +7,7 @@ A production-ready RAG (Retrieval-Augmented Generation) application with enterpr
 - **Frontend**: Next.js 15+ with App Router
 - **Backend**: FastAPI with async/await
 - **Authentication**: Entra ID with OBO token flow
-- **Search**: Azure AI Search (Free tier)
+- **Search**: Azure AI Search (S2 and above to support Semantic Reranker, Vector Search and True Vecotr Search)
 - **AI**: Azure OpenAI (GPT-4o)
 - **Document Processing**: Azure Document Intelligence (F0 tier)
 - **Content Safety**: Azure Content Safety (F0 tier)
