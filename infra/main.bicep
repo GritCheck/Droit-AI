@@ -7,6 +7,10 @@ param appName string = 'droitai'
 @description('Environment name')
 param environment string = 'dev'
 
+// Generate unique suffix for globally unique resources
+var uniqueSuffix = uniqueString(resourceGroup().id)
+var uniqueAppName = '${appName}-${uniqueSuffix}'
+
 @secure()
 param backendClientId string = ''
 
@@ -20,6 +24,7 @@ module storage 'storage.bicep' = {
   params: {
     location: location
     appName: appName
+    environment: environment
     containerName: 'documents'
   }
 }
@@ -28,7 +33,8 @@ module search 'search.bicep' = {
   name: 'searchDeployment'
   params: {
     location: location
-    appName: appName
+    appName: uniqueAppName
+    environment: environment
     searchSku: 'standard' // Recommended for Semantic Ranking in CUAD
   }
 }
@@ -38,8 +44,9 @@ module aiServices 'ai-services.bicep' = {
   params: {
     location: location
     appName: appName
+    environment: environment
     chatDeploymentName: 'gpt-4o'
-    embeddingDeploymentName: 'text-embedding-3-small'
+    embeddingDeploymentName: 'text-embedding-ada-002'
   }
 }
 
@@ -52,7 +59,7 @@ module host 'host.bicep' = {
     useUniqueNaming: true
     backendClientId: backendClientId
     frontendClientId: frontendClientId
-    // Pass endpoints from other modules
+    // Derive endpoint from appName — matches the App Service name set in host.bicep
     backendApiEndpoint: 'https://${appName}-app.azurewebsites.net'
   }
 }
@@ -79,7 +86,13 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
 
 // --- 3. OUTPUTS ---
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.storageAccountName
+output AZURE_STORAGE_CONTAINER_NAME string = storage.outputs.blobContainerName
+output AZURE_SEARCH_ENDPOINT string = search.outputs.searchServiceEndpoint
 output AZURE_SEARCH_SERVICE_NAME string = search.outputs.searchServiceName
 output AZURE_OPENAI_ENDPOINT string = aiServices.outputs.openaiEndpoint
+output AZURE_OPENAI_DEPLOYMENT_NAME string = aiServices.outputs.chatDeploymentName
+output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = aiServices.outputs.embeddingDeploymentName
+output AZURE_DOC_INTEL_ENDPOINT string = aiServices.outputs.docIntelEndpoint
+output AZURE_CONTENT_SAFETY_ENDPOINT string = aiServices.outputs.contentSafetyEndpoint
 output BACKEND_URI string = host.outputs.appServiceEndpoint
 output FRONTEND_URI string = host.outputs.frontendAppServiceEndpoint

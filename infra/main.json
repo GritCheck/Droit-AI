@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "9210489390381958794"
+      "templateHash": "12623293749636720851"
     }
   },
   "parameters": {
@@ -40,6 +40,8 @@
     }
   },
   "variables": {
+    "uniqueSuffix": "[uniqueString(resourceGroup().id)]",
+    "uniqueAppName": "[format('{0}-{1}', parameters('appName'), variables('uniqueSuffix'))]",
     "roles": [
       {
         "name": "StorageBlobDataContributor",
@@ -227,7 +229,7 @@
             "value": "[parameters('location')]"
           },
           "appName": {
-            "value": "[parameters('appName')]"
+            "value": "[variables('uniqueAppName')]"
           },
           "searchSku": {
             "value": "standard"
@@ -240,7 +242,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "10420149866806037959"
+              "templateHash": "7958708401772160047"
             }
           },
           "parameters": {
@@ -304,104 +306,6 @@
                 "azdEnvName": "dev",
                 "purpose": "DroitAI Search Service"
               }
-            },
-            {
-              "type": "Microsoft.Search/searchServices/indexes",
-              "apiVersion": "2023-11-01",
-              "name": "[format('{0}/{1}', format('{0}-search', parameters('appName')), format('{0}-search-index', parameters('appName')))]",
-              "properties": {
-                "fields": [
-                  {
-                    "name": "id",
-                    "type": "Edm.String",
-                    "key": true,
-                    "filterable": true,
-                    "retrievable": true
-                  },
-                  {
-                    "name": "content",
-                    "type": "Edm.String",
-                    "searchable": true,
-                    "retrievable": true,
-                    "analyzer": "en.microsoft"
-                  },
-                  {
-                    "name": "content_vector",
-                    "type": "Collection(Edm.Single)",
-                    "searchable": true,
-                    "retrievable": false,
-                    "dimensions": 1536,
-                    "vectorSearchProfile": "vector-profile"
-                  },
-                  {
-                    "name": "clause_type",
-                    "type": "Edm.String",
-                    "filterable": true,
-                    "searchable": true,
-                    "facetable": true,
-                    "retrievable": true
-                  },
-                  {
-                    "name": "is_red_flag",
-                    "type": "Edm.Boolean",
-                    "filterable": true,
-                    "retrievable": true
-                  },
-                  {
-                    "name": "document_name",
-                    "type": "Edm.String",
-                    "searchable": true,
-                    "filterable": true,
-                    "retrievable": true
-                  },
-                  {
-                    "name": "page_number",
-                    "type": "Edm.Int32",
-                    "filterable": true,
-                    "retrievable": true
-                  }
-                ],
-                "vectorSearch": {
-                  "algorithms": [
-                    {
-                      "name": "hnsw-config",
-                      "kind": "hnsw"
-                    }
-                  ],
-                  "profiles": [
-                    {
-                      "name": "vector-profile",
-                      "algorithm": "hnsw-config"
-                    }
-                  ]
-                },
-                "semanticSearch": {
-                  "configurations": [
-                    {
-                      "name": "legal-semantic-config",
-                      "prioritizedFields": {
-                        "titleField": {
-                          "fieldName": "document_name"
-                        },
-                        "contentFields": [
-                          {
-                            "fieldName": "content"
-                          }
-                        ],
-                        "keywordFields": [
-                          {
-                            "fieldName": "clause_type"
-                          }
-                        ]
-                      }
-                    }
-                  ],
-                  "defaultConfiguration": "legal-semantic-config"
-                }
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.Search/searchServices', format('{0}-search', parameters('appName')))]"
-              ]
             }
           ],
           "outputs": {
@@ -420,10 +324,6 @@
             "searchServiceKey": {
               "type": "string",
               "value": "[listKeys(resourceId('Microsoft.Search/searchServices', format('{0}-search', parameters('appName'))), '2023-11-01').primaryKey]"
-            },
-            "searchIndexName": {
-              "type": "string",
-              "value": "[format('{0}-search-index', parameters('appName'))]"
             }
           }
         }
@@ -449,7 +349,7 @@
             "value": "gpt-4o"
           },
           "embeddingDeploymentName": {
-            "value": "text-embedding-3-small"
+            "value": "text-embedding-ada-002"
           }
         },
         "template": {
@@ -720,7 +620,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "17749408135451138075"
+              "templateHash": "2245637532794205475"
             }
           },
           "parameters": {
@@ -784,13 +684,6 @@
               "defaultValue": "./startup.sh",
               "metadata": {
                 "description": "Backend app startup command"
-              }
-            },
-            "appInsightsConnectionString": {
-              "type": "string",
-              "defaultValue": "",
-              "metadata": {
-                "description": "Application Insights Connection String"
               }
             },
             "logAnalyticsWorkspaceId": {
@@ -926,7 +819,7 @@
                     },
                     {
                       "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-                      "value": "[parameters('appInsightsConnectionString')]"
+                      "value": "[reference(resourceId('Microsoft.Insights/components', format('{0}-backend-insights{1}', parameters('appName'), variables('uniqueSuffix'))), '2020-02-02').ConnectionString]"
                     },
                     {
                       "name": "LOG_ANALYTICS_WORKSPACE_ID",
@@ -948,6 +841,7 @@
                 "reserved": true
               },
               "dependsOn": [
+                "[resourceId('Microsoft.Insights/components', format('{0}-backend-insights{1}', parameters('appName'), variables('uniqueSuffix')))]",
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}-identity', parameters('appName')))]",
                 "[resourceId('Microsoft.Web/serverfarms', format('{0}-plan', parameters('appName')))]"
               ]
@@ -1055,7 +949,7 @@
                     },
                     {
                       "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-                      "value": "[parameters('appInsightsConnectionString')]"
+                      "value": "[reference(resourceId('Microsoft.Insights/components', format('{0}-frontend-insights{1}', parameters('appName'), variables('uniqueSuffix'))), '2020-02-02').ConnectionString]"
                     },
                     {
                       "name": "LOG_ANALYTICS_WORKSPACE_ID",
@@ -1077,6 +971,7 @@
                 "reserved": true
               },
               "dependsOn": [
+                "[resourceId('Microsoft.Insights/components', format('{0}-frontend-insights{1}', parameters('appName'), variables('uniqueSuffix')))]",
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('{0}-frontend-identity', parameters('appName')))]",
                 "[resourceId('Microsoft.Web/serverfarms', format('{0}-frontend-plan', parameters('appName')))]"
               ]
@@ -1189,13 +1084,21 @@
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageDeployment'), '2025-04-01').outputs.storageAccountName.value]"
     },
+    "AZURE_STORAGE_CONTAINER_NAME": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageDeployment'), '2025-04-01').outputs.blobContainerName.value]"
+    },
+    "AZURE_SEARCH_ENDPOINT": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'searchDeployment'), '2025-04-01').outputs.searchServiceEndpoint.value]"
+    },
     "AZURE_SEARCH_SERVICE_NAME": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Resources/deployments', 'searchDeployment'), '2025-04-01').outputs.searchServiceName.value]"
     },
-    "AZURE_OPENAI_ENDPOINT": {
+    "AZURE_SEARCH_KEY": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiServicesDeployment'), '2025-04-01').outputs.openaiEndpoint.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'searchDeployment'), '2025-04-01').outputs.searchServiceKey.value]"
     },
     "BACKEND_URI": {
       "type": "string",

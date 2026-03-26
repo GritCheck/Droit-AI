@@ -4,6 +4,9 @@ param location string = resourceGroup().location
 @description('Application name for naming resources')
 param appName string
 
+@description('Environment name')
+param environment string = 'dev'
+
 @description('OpenAI SKU')
 param openaiSku string = 'S0'
 
@@ -40,7 +43,7 @@ resource openaiAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   }
   tags: {
     azdServiceName: 'openai'
-    azdEnvName: 'dev'
+    azdEnvName: environment
     purpose: 'DroitAI OpenAI Service'
   }
 }
@@ -128,14 +131,11 @@ resource contentSafetyAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' 
 output openaiAccountName string = openaiAccount.name
 output openaiAccountId string = openaiAccount.id
 output openaiEndpoint string = openaiAccount.properties.endpoint
-output openaiKey string = openaiAccount.listKeys().key1
 output chatDeploymentName string = gpt4Deployment.name
 output embeddingDeploymentName string = embeddingDeployment.name
 output docIntelAccountName string = docIntelAccount.name
 output docIntelAccountId string = docIntelAccount.id
 output docIntelEndpoint string = docIntelAccount.properties.endpoint
-output docIntelKey string = docIntelAccount.listKeys().key1
 output contentSafetyAccountName string = contentSafetyAccount.name
 output contentSafetyAccountId string = contentSafetyAccount.id
 output contentSafetyEndpoint string = contentSafetyAccount.properties.endpoint
-output contentSafetyKey string = contentSafetyAccount.listKeys().key1

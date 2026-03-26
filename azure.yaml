@@ -3,48 +3,26 @@ target: azure
 version: 1.0.0
 description: Azure-first enterprise RAG system with Document Intelligence - DroitAI
 
-# Azure services to provision
 services:
   app:
-    # 1. Point to the actual Python code folder
-    project: ./backend 
+    project: ./backend
     host: appservice
     language: python
     runtime: python
-    runtimeVersion: 3.11
+    runtimeVersion: "3.11"
     port: 8000
     healthCheck: /health
     env:
-      # Keep your existing environment variables...
       PYTHONPATH: /home/site/wwwroot
 
-# Post-provision hooks for data seeding
-hooks:
-  preprovision:
-    posix:
-      shell: bash
-      run: ./scripts/setup-env.sh
-    windows:
-      shell: pwsh
-        run: ./scripts/setup-env.ps1
-  postprovision:
-    windows:
-      shell: pwsh
-      run: ./scripts/sync-data.ps1
-    posix:
-      shell: bash
-      run: ./scripts/sync-data.sh
-
   frontend:
-    # Next.js frontend application
     project: ./frontend
     host: appservice
     language: ts
     runtime: node
-    runtimeVersion: 20
+    runtimeVersion: "20"
     port: 3000
     healthCheck: /api/health
-    
     hooks:
       predeploy:
         windows:
@@ -53,50 +31,69 @@ hooks:
         posix:
           shell: bash
           run: npm run build
-
     env:
       NODE_ENV: production
 
-# Infrastructure as Code
+hooks:
+  preprovision:
+    posix:
+      shell: bash
+      run: ./scripts/setup-env.sh
+    windows:
+      shell: pwsh
+      run: ./scripts/setup-env.ps1
+  postprovision:
+    windows:
+      shell: pwsh
+      run: |
+        ./scripts/sync-data.ps1
+        ./scripts/setup-search-index.ps1
+    posix:
+      shell: bash
+      run: |
+        ./scripts/sync-data.sh
+        ./scripts/setup-search-index.sh
+
 infrastructure:
   path: ./infra
   type: bicep
 
-# Environment variables
 environment:
-  # Azure AI Search
+  # Azure AI Search — endpoint only; auth via managed identity (SearchIndexDataReader role)
   - name: AZURE_SEARCH_ENDPOINT
     value: $AZURE_SEARCH_ENDPOINT
-  - name: AZURE_SEARCH_KEY
-    value: $AZURE_SEARCH_KEY
   - name: AZURE_SEARCH_INDEX_NAME
-    value: droitai-index
-  
-  # Azure OpenAI
+    value: droitai-search-index
+
+  # Azure OpenAI — endpoint + deployment names; auth via managed identity (CognitiveServicesUser role)
   - name: AZURE_OPENAI_ENDPOINT
     value: $AZURE_OPENAI_ENDPOINT
-  - name: AZURE_OPENAI_API_KEY
-    value: $AZURE_OPENAI_KEY
   - name: AZURE_OPENAI_DEPLOYMENT_NAME
-    value: $AZURE_OPENAI_CHAT_DEPLOYMENT_NAME
+    value: $AZURE_OPENAI_DEPLOYMENT_NAME
   - name: AZURE_OPENAI_EMBEDDING_DEPLOYMENT
-    value: $AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME
-  
-  # Azure Storage
-  - name: AZURE_STORAGE_CONNECTION_STRING
-    value: $AZURE_STORAGE_CONNECTION_STRING
-  - name: AZURE_STORAGE_CONTAINER_NAME
-    value: $AZURE_STORAGE_CONTAINER_NAME
+    value: $AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+
+  # Azure Document Intelligence — endpoint only; auth via managed identity (CognitiveServicesUser role)
+  - name: AZURE_DOC_INTEL_ENDPOINT
+    value: $AZURE_DOC_INTEL_ENDPOINT
+
+  # Azure Content Safety — endpoint only; auth via managed identity (CognitiveServicesUser role)
+  - name: AZURE_CONTENT_SAFETY_ENDPOINT
+    value: $AZURE_CONTENT_SAFETY_ENDPOINT
+
+  # Azure Storage — account name only; auth via managed identity (StorageBlobDataContributor role)
   - name: AZURE_STORAGE_ACCOUNT_NAME
     value: $AZURE_STORAGE_ACCOUNT_NAME
-  
+  - name: AZURE_STORAGE_CONTAINER_NAME
+    value: $AZURE_STORAGE_CONTAINER_NAME
+
   # Application
   - name: FRONTEND_URL
-    value: $FRONTEND_ENDPOINT
+    value: $FRONTEND_URI
   - name: BACKEND_URL
-    value: $APP_SERVICE_ENDPOINT
+    value: $BACKEND_URI
   - name: ENABLE_LOCAL_PARSING
-    value: false
+    value: "false"
   - name: LOG_LEVEL
     value: INFO
   - name: ENABLE_OBO_FLOW

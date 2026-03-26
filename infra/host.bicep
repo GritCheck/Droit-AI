@@ -28,9 +28,6 @@ param nodeRuntimeVersion string = 'NODE|20-lts'
 @description('Backend app startup command')
 param appCommandLine string = './startup.sh'
 
-@description('Application Insights Connection String')
-param appInsightsConnectionString string = ''
-
 @description('Log Analytics Workspace ID')
 param logAnalyticsWorkspaceId string = ''
 
@@ -116,7 +113,7 @@ resource appService 'Microsoft.Web/sites@2023-01-01' = {
       minTlsVersion: '1.2'
       remoteDebuggingEnabled: false
       appCommandLine: appCommandLine
-      use32BitWorkerProcess: true
+      use32BitWorkerProcess: false
       webSocketsEnabled: false
       ftpsState: 'FtpsOnly'
       healthCheckPath: null
@@ -144,7 +141,7 @@ resource appService 'Microsoft.Web/sites@2023-01-01' = {
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: appInsightsConnectionString
+          value: appInsights.properties.ConnectionString
         }
         {
           name: 'LOG_ANALYTICS_WORKSPACE_ID'
@@ -283,7 +280,7 @@ resource frontendAppService 'Microsoft.Web/sites@2023-01-01' = {
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: appInsightsConnectionString
+          value: frontendAppInsights.properties.ConnectionString
         }
         {
           name: 'LOG_ANALYTICS_WORKSPACE_ID'

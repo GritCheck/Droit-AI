@@ -4,6 +4,9 @@ param location string = resourceGroup().location
 @description('Application name for naming resources')
 param appName string
 
+@description('Environment name')
+param environment string = 'dev'
+
 @description('Storage SKU')
 param storageSku string = 'Standard_LRS'
 
@@ -32,7 +35,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
   tags: {
     'azd-service-name': 'storage'
-    'azd-env-name': 'dev'
+    'azd-env-name': environment
     purpose: 'DroitAI Document Storage'
   }
 }
@@ -56,6 +59,5 @@ resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/container
 output storageAccountName string = storageAccount.name
 output storageAccountId string = storageAccount.id
 output storageAccountPrimaryEndpoint string = storageAccount.properties.primaryEndpoints.web
-output storageAccountKey string = listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value
 output blobContainerName string = blobContainer.name
 output blobContainerId string = blobContainer.id
