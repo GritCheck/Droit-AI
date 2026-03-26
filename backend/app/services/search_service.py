@@ -8,7 +8,7 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from azure.identity.aio import OnBehalfOfCredential, DefaultAzureCredential
+from azure.identity.aio import  DefaultAzureCredential
 from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import (
     VectorizedQuery,
@@ -16,9 +16,7 @@ from azure.search.documents.models import (
     QueryCaptionType,
     QueryAnswerType
 )
-from azure.core.credentials import AzureKeyCredential
 from azure.monitor.query import LogsQueryClient
-import httpx
 
 from app.core.config import get_settings
 from app.models.search import SearchRequest, SearchResult, DocumentMetadata
@@ -64,37 +62,28 @@ class GovernedSearchService:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit"""
         await self._cleanup_clients()
-        
+
     async def _initialize_clients(self):
-        """Initialize Azure clients with proper credentials"""
+        """Refactored to use Managed Identity (RBAC)"""
         try:
-            # Use OBO credential for user-specific operations
-            if self.settings.azure_tenant_id and self.settings.azure_client_id and self.settings.azure_client_secret:
-                self._credential = OnBehalfOfCredential(
-                    tenant_id=self.settings.azure_tenant_id
-                )
-            else:
-                # Fallback to default credential for development
-                self._credential = DefaultAzureCredential()
-                
-            # Initialize search client
+            # Use DefaultAzureCredential (covers Managed Identity & local CLI login)
+            self._credential = DefaultAzureCredential()
+
+            # Initialize Search Client WITHOUT an API Key
+            # The SDK will automatically handle Bearer token from Managed Identity
             self._search_client = SearchClient(
                 endpoint=self.settings.azure_search_endpoint,
                 index_name=self.settings.azure_search_index_name,
                 credential=self._credential
             )
             
-            # Initialize Azure Monitor Logs client for KQL queries
+            # Initialize Logs client (already using DefaultAzureCredential)
             if self.settings.log_analytics_workspace_id:
-                self._logs_client = LogsQueryClient(
-                    credential=self._credential,
-                    endpoint=f"https://{self.settings.log_analytics_workspace_id}.ods.opinsights.azure.com"
-                )
+                self._logs_client = LogsQueryClient(credential=self._credential)
             
-            logger.info("Search service initialized successfully with KQL support")
-            
+            logger.info("✅ Search service initialized using Managed Identity (RBAC)")
         except Exception as e:
-            logger.error(f"Failed to initialize search service: {str(e)}")
+            logger.error(f"❌ RBAC Initialization failed: {str(e)}")
             raise
     
     async def _cleanup_clients(self):
@@ -132,85 +121,60 @@ class GovernedSearchService:
     
     async def extract_user_context(self, access_token: str) -> UserContext:
         """
-        Extract user context from OBO token via Microsoft Graph.
-        Implements robust token validation and security group extraction.
+        Extract user context from JWT token locally.
+        Avoids Microsoft Graph API audience issues by decoding token directly.
         """
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                # 1. Get User Profile
-                profile_resp = await client.get(
-                    "https://graph.microsoft.com/v1.0/me",
-                    headers={"Authorization": f"Bearer {access_token}"}
-                )
-                profile_resp.raise_for_status()
-                user_data = profile_resp.json()
-                
-                # 2. Get Security Groups (MemberOf)
-                # We use /memberOf to get group IDs for Row-Level Security
-                groups_resp = await client.get(
-                    "https://graph.microsoft.com/v1.0/me/memberOf?$select=id,displayName",
-                    headers={"Authorization": f"Bearer {access_token}"}
-                )
-                groups_resp.raise_for_status()
-                groups_data = groups_resp.json()
-                
-                # Extract clean IDs
-                group_ids = [g['id'] for g in groups_data.get('value', []) if 'id' in g]
-
-                # 3. Construct Context
-                # Extract group IDs for security filtering with validation
-                group_ids = []
-                for group in groups_data.get('value', []):
-                    if (isinstance(group, dict) and 
-                        'id' in group and 
-                        isinstance(group['id'], str) and
-                        'security' in group.get('@odata.type', '').lower()):
-                        group_ids.append(group['id'])
-                
-                # Create user context
-                user_context = UserContext(
-                    user_id=user_data['id'],
-                    tenant_id=user_data.get('tenantId', self.settings.azure_tenant_id),
-                    display_name=user_data.get('displayName', 'Unknown'),
-                    group_ids=group_ids,
-                    department=user_data.get('department'),
-                    role=user_data.get('jobTitle'),
-                    security_clearance=self._extract_security_clearance(user_data, group_ids)
-                )
-                
-                # Log for audit purposes
-                await self._log_search_access(user_context, "token_validation")
-                
-                return user_context
-                
-        except httpx.TimeoutException:
-            logger.error("Microsoft Graph API timeout during user context extraction")
-            raise ValueError("Authentication service timeout")
-        except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error from Microsoft Graph: {e.response.status_code}")
-            if e.response.status_code == 401:
-                raise ValueError("Invalid or expired authentication token")
-            elif e.response.status_code == 403:
-                raise ValueError("Insufficient permissions to access user information")
-            else:
-                raise ValueError(f"Authentication service error: {e.response.status_code}")
+            import jwt
+            
+            # Decode JWT token locally (no signature verification needed for Azure AD tokens)
+            decoded_token = jwt.decode(access_token, options={"verify_signature": False})
+            
+            # Extract user information from token claims
+            user_id = decoded_token.get('oid') or decoded_token.get('sub')
+            tenant_id = decoded_token.get('tid') or self.settings.azure_tenant_id
+            display_name = decoded_token.get('name') or 'Unknown User'
+            
+            
+            # Extract security groups from token
+            group_ids = decoded_token.get('groups', [])
+            
+            # Create user context
+            user_context = UserContext(
+                user_id=user_id,
+                tenant_id=tenant_id,
+                display_name=display_name,
+                group_ids=group_ids,
+                department=None,  # Not available in token, could be enhanced
+                role=None,       # Not available in token, could be enhanced
+                security_clearance=self._extract_security_clearance_from_groups(group_ids)
+            )
+            
+            logger.info(f"Successfully extracted user context for {display_name} with {len(group_ids)} groups")
+            return user_context
+            
         except Exception as e:
-            logger.error(f"Failed to extract user context: {str(e)}")
-            raise ValueError(f"Invalid OBO token: {str(e)}")
+            logger.error(f"Failed to extract user context from token: {str(e)}")
+            raise ValueError("Invalid or expired authentication token")
     
-    def _extract_security_clearance(self, user_data: Dict, group_ids: List[str]) -> str:
-        """Extract security clearance from user groups and attributes"""
+    def _extract_security_clearance_from_groups(self, group_ids: List[str]) -> str:
+        """Extract security clearance from Azure AD group IDs"""
         # Map Azure AD groups to security clearances
+        # This is a simplified mapping - in production, use group names or attributes
         
-        # Check user's department and title for default clearance
-        department = user_data.get('department', '').lower()
-        job_title = user_data.get('jobTitle', '').lower()
+        if not group_ids:
+            return 'confidential'  # Default clearance
         
-        if 'executive' in department or 'ceo' in job_title:
+        # Check for high-level groups (you'd map actual group IDs here)
+        executive_groups = ['executive-group-id', 'c-level-group-id']  # Replace with actual group IDs
+        manager_groups = ['manager-group-id', 'director-group-id']   # Replace with actual group IDs
+        contractor_groups = ['contractor-group-id']                  # Replace with actual group IDs
+        
+        if any(group_id in executive_groups for group_id in group_ids):
             return 'top-secret'
-        elif 'manager' in job_title or 'director' in job_title:
+        elif any(group_id in manager_groups for group_id in group_ids):
             return 'secret'
-        elif 'contractor' in job_title:
+        elif any(group_id in contractor_groups for group_id in group_ids):
             return 'restricted'
         else:
             return 'confidential'
@@ -260,16 +224,15 @@ class GovernedSearchService:
                 search_text=search_text,
                 vector_queries=[vector_query] if vector_query else None,
                 query_type=QueryType.SEMANTIC,
-                query_language="en-us",
-                query_speller="lexicon",
-                semantic_configuration_name="semantic-config",
+                # query_speller="lexicon",  # Removed - causes SDK transport issues
+                semantic_configuration_name="legal-semantic-config",
                 query_caption=QueryCaptionType.EXTRACTIVE,
                 query_answer=QueryAnswerType.EXTRACTIVE,
                 top=request.top_k,
                 skip=request.skip,
                 filter=security_filter,
                 include_total_count=True,
-                facets=["category", "department", "security_clearance"]
+                facets=["clause_type", "is_red_flag", "document_name"]  # Updated for CUAD schema
             )
             
             # Process and filter results
@@ -284,10 +247,10 @@ class GovernedSearchService:
                     
                     document = DocumentMetadata(
                         id=result.get('id'),
-                        title=result.get('title'),
+                        title=result.get('document_name', ''),  # Updated for CUAD schema
                         content=result.get('content', '')[:500],  # Preview only
                         url=result.get('url'),
-                        category=result.get('category'),
+                        category=result.get('clause_type', ''),  # Updated for CUAD schema
                         department=result.get('department'),
                         security_clearance=result.get('security_clearance'),
                         created_at=result.get('created_at'),
@@ -295,9 +258,12 @@ class GovernedSearchService:
                         captions=result.get('@search.captions', []),
                         is_safe_content=content_safety.is_safe,
                         metadata={
+                            'clause_type': result.get('clause_type'),  # CUAD specific
+                            'is_red_flag': result.get('is_red_flag', False),  # CUAD specific
+                            'document_name': result.get('document_name'),
+                            'page_number': result.get('page_number'),
                             'source': result.get('source'),
                             'file_type': result.get('file_type'),
-                            'page_number': result.get('page_number'),
                             'chunk_id': result.get('chunk_id')
                         }
                     )

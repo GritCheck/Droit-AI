@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { keyBy } from 'es-toolkit';
 import { v4 as uuidv4 } from 'uuid';
 import useSWR, { mutate } from 'swr';
+import { isAxiosError } from 'axios';
 
 import axios, { fetcher, endpoints } from 'src/lib/axios';
 
@@ -120,7 +121,35 @@ export async function createConversation(conversationData: IChatConversation) {
     };
   } catch (error) {
     console.error('Failed to create conversation:', error);
-    throw error;
+    
+    // Handle specific error cases
+    if (isAxiosError(error)) {
+      const errorMessage = error.response?.data?.detail || error.message;
+      
+      // Check if it's a search index error
+      if (errorMessage.includes('index') && errorMessage.includes('was not found')) {
+        throw new Error('Search service is not configured yet. Please contact your administrator to set up the search index.');
+      }
+      
+      // Check if it's an authentication error
+      if (error.response?.status === 401) {
+        throw new Error('Authentication failed. Please sign in again.');
+      }
+      
+      // Check if it's a server error
+      if (error.response?.status && error.response.status >= 500) {
+        throw new Error('Service temporarily unavailable. Please try again later.');
+      }
+      
+      throw new Error(errorMessage || 'Failed to create conversation');
+    }
+    
+    // Handle non-Axios errors
+    if (error instanceof Error) {
+      throw error;
+    }
+    
+    throw new Error('Failed to create conversation');
   }
 }
 

@@ -31,9 +31,10 @@ class Settings(BaseSettings):
     azure_scopes: str = Field(default_factory=lambda: os.getenv("AZURE_SCOPES", "api://your-backend-app-id/access_as_user"))
     azure_use_obo: bool = Field(default_factory=lambda: os.getenv("AZURE_USE_OBO", "True").lower() == "true")
     
-    # Azure AI Search
+    # Azure AI Search - Using Managed Identity (RBAC)
     azure_search_endpoint: str = Field("", env="AZURE_SEARCH_ENDPOINT")
-    azure_search_key: str = Field("", env="AZURE_SEARCH_KEY")
+    # DEPRECATED: azure_search_key is no longer used with Managed Identity
+    # azure_search_key: str = Field("", env="AZURE_SEARCH_KEY")
     azure_search_index_name: str = Field("droitai-index", env="AZURE_SEARCH_INDEX_NAME")
     
     # Azure OpenAI

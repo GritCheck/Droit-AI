@@ -34,7 +34,6 @@ async def ask_question(
     chat_request: ChatRequest,
     http_request: Request,
     credentials: HTTPAuthorizationCredentials = Security(security),
-    search_service: GovernedSearchService = Depends(GovernedSearchService),
     llm_service: LLMOrchestrator = Depends(LLMOrchestrator),
     history_service: HistoryService = Depends(HistoryService)
 ):
@@ -46,6 +45,10 @@ async def ask_question(
     
     with OperationTimer("chat_ask", request=http_request):
         try:
+            # Initialize search service
+            search_service = GovernedSearchService()
+            await search_service._initialize_clients()
+            
             # Extract and validate OBO token
             access_token = credentials.credentials
             user_context = await search_service.extract_user_context(access_token)

@@ -29,11 +29,7 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     # Startup
     logger.info("Starting DroitAI Backend...")
-    logger.info(f"Debug mode: {settings.debug}")
-    logger.info(f"Local parsing enabled: {settings.enable_local_parsing}")
-    logger.info(f"Azure Document Intelligence enabled: {settings.enable_azure_doc_intelligence}")
-    logger.info(f"Content safety enabled: {settings.enable_content_safety}")
-    
+
     yield
     
     # Shutdown

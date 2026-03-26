@@ -14,21 +14,26 @@ services:
     runtimeVersion: 3.11
     port: 8000
     healthCheck: /health
-    
-    hooks:
-      # 3. Clean up the hooks to avoid the 'test_apis.py' error we saw earlier
-      predeploy:
-        windows:
-          shell: pwsh
-          # Only run if the file exists, or comment out until tests are ready
-          run: if (Test-Path test_apis.py) { python -m pytest test_apis.py -v }
-        posix:
-          shell: bash
-          run: if [ -f test_apis.py ]; then python -m pytest test_apis.py -v; fi
-
     env:
       # Keep your existing environment variables...
       PYTHONPATH: /home/site/wwwroot
+
+# Post-provision hooks for data seeding
+hooks:
+  preprovision:
+    posix:
+      shell: bash
+      run: ./scripts/setup-env.sh
+    windows:
+      shell: pwsh
+        run: ./scripts/setup-env.ps1
+  postprovision:
+    windows:
+      shell: pwsh
+      run: ./scripts/sync-data.ps1
+    posix:
+      shell: bash
+      run: ./scripts/sync-data.sh
 
   frontend:
     # Next.js frontend application

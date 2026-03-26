@@ -37,6 +37,14 @@ param logAnalyticsWorkspaceId string = ''
 @description('Backend API endpoint for frontend')
 param backendApiEndpoint string = ''
 
+@description('Backend client ID for authentication')
+@secure()
+param backendClientId string = ''
+
+@description('Frontend client ID for authentication')
+@secure()
+param frontendClientId string = ''
+
 // App Service Plan
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
   name: '${appName}-plan'
@@ -141,6 +149,14 @@ resource appService 'Microsoft.Web/sites@2023-01-01' = {
         {
           name: 'LOG_ANALYTICS_WORKSPACE_ID'
           value: logAnalyticsWorkspaceId
+        }
+        {
+          name: 'BACKEND_CLIENT_ID'
+          value: backendClientId
+        }
+        {
+          name: 'FRONTEND_CLIENT_ID'
+          value: frontendClientId
         }
       ]
       connectionStrings: []
@@ -272,6 +288,14 @@ resource frontendAppService 'Microsoft.Web/sites@2023-01-01' = {
         {
           name: 'LOG_ANALYTICS_WORKSPACE_ID'
           value: logAnalyticsWorkspaceId
+        }
+        {
+          name: 'BACKEND_CLIENT_ID'
+          value: backendClientId
+        }
+        {
+          name: 'FRONTEND_CLIENT_ID'
+          value: frontendClientId
         }
       ]
       connectionStrings: []

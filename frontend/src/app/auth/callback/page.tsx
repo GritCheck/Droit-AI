@@ -18,14 +18,21 @@ export default function AzureCallbackPage() {
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
+    let isProcessing = true;
+    
     const handleAzureCallback = async () => {
+      if (!isProcessing) return;
+      
       try {
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const sessionState = searchParams.get('session_state');
 
         if (!code || !state) {
-          throw new Error('Missing required OAuth parameters');
+          // Don't throw error, just redirect to sign in if missing params
+          console.warn('Missing OAuth parameters, redirecting to sign in');
+          router.push(paths.auth.azure.signIn);
+          return;
         }
 
         setStatus('processing');
@@ -61,6 +68,8 @@ export default function AzureCallbackPage() {
           localStorage.setItem('azure_user', JSON.stringify(data.user));
         }
 
+        if (!isProcessing) return;
+        
         setStatus('success');
 
         // Get the return URL from state or default to dashboard
@@ -68,17 +77,25 @@ export default function AzureCallbackPage() {
         
         // Redirect back to the originally requested page
         setTimeout(() => {
-          router.push(returnUrl);
+          if (isProcessing) {
+            router.push(returnUrl);
+          }
         }, 1000);
 
       } catch (err) {
         console.error('Azure callback error:', err);
-        setError(err instanceof Error ? err.message : 'Authentication failed');
-        setStatus('error');
+        if (isProcessing) {
+          setError(err instanceof Error ? err.message : 'Authentication failed');
+          setStatus('error');
+        }
       }
     };
 
     handleAzureCallback();
+    
+    return () => {
+      isProcessing = false;
+    };
   }, [searchParams, router]);
 
   return (
