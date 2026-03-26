@@ -1,62 +1,50 @@
-import type { IChatParticipant, IChatConversations } from 'src/types/chat';
+'use client';
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import type { IChatConversation } from 'src/types/chat';
+
+import { useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
-import TextField from '@mui/material/TextField';
 import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import InputAdornment from '@mui/material/InputAdornment';
-import ClickAwayListener from '@mui/material/ClickAwayListener';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
-import { today } from 'src/utils/format-time';
-
-import { createConversation } from 'src/actions/chat';
-
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
-import { useMockedUser } from 'src/auth/hooks';
-
 import { ToggleButton } from './styles';
 import { ChatNavItem } from './chat-nav-item';
-import { ChatNavAccount } from './chat-nav-account';
 import { ChatNavItemSkeleton } from './chat-skeleton';
-import { ChatNavSearchResults } from './chat-nav-search-results';
-import { initialConversation } from './utils/initial-conversation';
 
 import type { UseNavCollapseReturn } from './hooks/use-collapse-nav';
 
 // ----------------------------------------------------------------------
 
 const NAV_WIDTH = 320;
-
 const NAV_COLLAPSE_WIDTH = 96;
 
 type Props = {
   loading: boolean;
   selectedConversationId: string;
-  contacts: IChatParticipant[];
+  conversations: {
+    allIds: string[];
+    byId: Record<string, IChatConversation>;
+  };
   collapseNav: UseNavCollapseReturn;
-  conversations: IChatConversations;
 };
 
 export function ChatNav({
   loading,
-  contacts,
   collapseNav,
   conversations,
   selectedConversationId,
 }: Props) {
   const router = useRouter();
-
-  const { user } = useMockedUser();
-
   const theme = useTheme();
   const mdUp = useMediaQuery(theme.breakpoints.up('md'));
 
@@ -69,31 +57,17 @@ export function ChatNav({
     onCollapseDesktop,
   } = collapseNav;
 
-  const [searchContacts, setSearchContacts] = useState<{
-    query: string;
-    results: IChatParticipant[];
-  }>({ query: '', results: [] });
-
-  const myContact: IChatParticipant = useMemo(
-    () => ({
-      id: `${user?.id}`,
-      role: `${user?.role}`,
-      email: `${user?.email}`,
-      address: `${user?.address}`,
-      name: `${user?.displayName}`,
-      lastActivity: today(),
-      avatarUrl: `${user?.photoURL}`,
-      phoneNumber: `${user?.phoneNumber}`,
-      status: 'online',
-    }),
-    [user]
-  );
-
-  useEffect(() => {
-    if (!mdUp) {
+  const handleCloseNav = useCallback(() => {
+    if (mdUp) {
       onCloseDesktop();
+    } else {
+      onCloseMobile();
     }
-  }, [onCloseDesktop, mdUp]);
+  }, [mdUp, onCloseDesktop, onCloseMobile]);
+
+  const handleNewChat = useCallback(() => {
+    router.push(paths.dashboard.chat);
+  }, [router]);
 
   const handleToggleNav = useCallback(() => {
     if (mdUp) {
@@ -103,119 +77,22 @@ export function ChatNav({
     }
   }, [mdUp, onCloseMobile, onCollapseDesktop]);
 
-  const handleClickCompose = useCallback(() => {
-    if (!mdUp) {
-      onCloseMobile();
+  useEffect(() => {
+    if (!selectedConversationId) {
+      handleCloseNav();
     }
-    router.push(paths.dashboard.chat);
-  }, [mdUp, onCloseMobile, router]);
+  }, [selectedConversationId, handleCloseNav]);
 
-  const handleSearchContacts = useCallback(
-    (inputValue: string) => {
-      setSearchContacts((prevState) => ({ ...prevState, query: inputValue }));
+  useEffect(() => {
+    if (!mdUp) {
+      onCloseDesktop();
+    }
+  }, [onCloseDesktop, mdUp]);
 
-      if (inputValue) {
-        const results = contacts.filter((contact) =>
-          contact.name.toLowerCase().includes(inputValue.toLowerCase())
-        );
-
-        setSearchContacts((prevState) => ({ ...prevState, results }));
-      }
-    },
-    [contacts]
-  );
-
-  const handleClickAwaySearch = useCallback(() => {
-    setSearchContacts({ query: '', results: [] });
-  }, []);
-
-  const handleClickResult = useCallback(
-    async (result: IChatParticipant) => {
-      handleClickAwaySearch();
-
-      const linkTo = (id: string) => router.push(`${paths.dashboard.chat}?id=${id}`);
-
-      try {
-        // Check if the conversation already exists
-        if (conversations.allIds.includes(result.id)) {
-          linkTo(result.id);
-          return;
-        }
-
-        // Find the recipient in contacts
-        const recipient = contacts.find((contact) => contact.id === result.id);
-        if (!recipient) {
-          console.error('Recipient not found');
-          return;
-        }
-
-        // Prepare conversation data
-        const { conversationData } = initialConversation({
-          recipients: [recipient],
-          me: myContact,
-        });
-
-        // Create a new conversation
-        const res = await createConversation(conversationData);
-
-        if (!res || !res.conversation) {
-          console.error('Failed to create conversation');
-        }
-
-        // Navigate to the new conversation
-        linkTo(res.conversation.id);
-      } catch (error) {
-        console.error('Error handling click result:', error);
-      }
-    },
-    [contacts, conversations.allIds, handleClickAwaySearch, myContact, router]
-  );
-
-  const renderLoading = () => <ChatNavItemSkeleton />;
-
-  const renderList = () => (
-    <nav>
-      <Box component="ul">
-        {conversations.allIds.map((conversationId) => (
-          <ChatNavItem
-            key={conversationId}
-            collapse={collapseDesktop}
-            conversation={conversations.byId[conversationId]}
-            selected={conversationId === selectedConversationId}
-            onCloseMobile={onCloseMobile}
-          />
-        ))}
-      </Box>
-    </nav>
-  );
-
-  const renderListResults = () => (
-    <ChatNavSearchResults
-      query={searchContacts.query}
-      results={searchContacts.results}
-      onClickResult={handleClickResult}
-    />
-  );
-
-  const renderSearchInput = () => (
-    <ClickAwayListener onClickAway={handleClickAwaySearch}>
-      <TextField
-        fullWidth
-        value={searchContacts.query}
-        onChange={(event) => handleSearchContacts(event.target.value)}
-        placeholder="Search contacts..."
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
-              </InputAdornment>
-            ),
-          },
-        }}
-        sx={{ mt: 2.5 }}
-      />
-    </ClickAwayListener>
+  const renderLoading = () => (
+    <Box sx={{ p: 2.5 }}>
+      <ChatNavItemSkeleton />
+    </Box>
   );
 
   const renderContent = () => (
@@ -223,41 +100,49 @@ export function ChatNav({
       <Box
         sx={{
           p: 2.5,
-          pb: 0,
+          pb: 1,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'space-between',
         }}
       >
         {!collapseDesktop && (
-          <>
-            <ChatNavAccount />
-            <Box sx={{ flexGrow: 1 }} />
-          </>
+          <Typography variant="h6" sx={{ fontSize: 14, fontWeight: 600 }}>
+            Chat History
+          </Typography>
         )}
 
-        <IconButton onClick={handleToggleNav}>
-          <Iconify
-            icon={collapseDesktop ? 'eva:arrow-ios-forward-fill' : 'eva:arrow-ios-back-fill'}
-          />
-        </IconButton>
-
-        {!collapseDesktop && (
-          <IconButton onClick={handleClickCompose}>
-            <Iconify width={24} icon="solar:user-plus-bold" />
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <IconButton onClick={handleToggleNav}>
+            <Iconify
+              icon={collapseDesktop ? 'eva:arrow-ios-forward-fill' : 'eva:arrow-ios-back-fill'}
+            />
           </IconButton>
-        )}
-      </Box>
 
-      <Box sx={{ p: 2.5, pt: 0 }}>{!collapseDesktop && renderSearchInput()}</Box>
+          {!collapseDesktop && (
+            <IconButton onClick={handleNewChat} sx={{ ml: 1 }}>
+              <Iconify width={24} icon="solar:plus-circle-bold" />
+            </IconButton>
+          )}
+        </Box>
+      </Box>
 
       {loading ? (
         renderLoading()
       ) : (
         <Scrollbar sx={{ pb: 1 }}>
-          {searchContacts.query && !!conversations.allIds.length
-            ? renderListResults()
-            : renderList()}
+          <Box sx={{ p: 2.5, pt: 1 }}>
+            {conversations.allIds.map((id) => (
+              <ChatNavItem
+                key={id}
+                conversation={conversations.byId[id]}
+                selected={id === selectedConversationId}
+                onCloseMobile={handleCloseNav}
+                onClick={() => router.push(`${paths.dashboard.chat}?id=${id}`)}
+                collapse={collapseDesktop}
+              />
+            ))}
+          </Box>
         </Scrollbar>
       )}
     </>
@@ -266,7 +151,7 @@ export function ChatNav({
   return (
     <>
       <ToggleButton onClick={onOpenMobile} sx={{ display: { md: 'none' } }}>
-        <Iconify width={16} icon="solar:users-group-rounded-bold" />
+        <Iconify width={16} icon="solar:chat-round-dots-bold" />
       </ToggleButton>
 
       <Box

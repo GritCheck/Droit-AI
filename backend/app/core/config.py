@@ -2,21 +2,34 @@
 Configuration management using Pydantic settings
 """
 
+import os
 from typing import Optional, List
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
 
+# Load .env file manually
+load_dotenv()
 
 class Settings(BaseSettings):
     """Application settings with environment variable support"""
     
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"
+    )
+    
     # Azure AD Configuration
-    azure_client_id: str = Field("", env="AZURE_CLIENT_ID")
-    azure_client_secret: str = Field("", env="AZURE_CLIENT_SECRET")
-    azure_tenant_id: str = Field("", env="AZURE_TENANT_ID")
-    azure_authority: str = Field("https://login.microsoftonline.com/", env="AZURE_AUTHORITY")
-    azure_scopes: str = Field("api://your-backend-app-id/access_as_user", env="AZURE_SCOPES")
-    azure_use_obo: bool = Field(True, env="AZURE_USE_OBO")
+    azure_client_id: str = Field(default_factory=lambda: os.getenv("AZURE_BACKEND_ENTRA_APP_CLIENT_ID", ""))
+    azure_client_secret: str = Field(default_factory=lambda: os.getenv("AZURE_BACKEND_ENTRA_APP_CLIENT_SECRET", ""))
+    azure_frontend_client_id: str = Field(default_factory=lambda: os.getenv("AZURE_FRONTEND_ENTRA_CLIENT_ID", ""))
+    azure_frontend_client_secret: str = Field(default_factory=lambda: os.getenv("AZURE_FRONTEND_ENTRA_CLIENT_SECRET", ""))
+    azure_tenant_id: str = Field(default_factory=lambda: os.getenv("AZURE_BACKEND_ENTRA_APP_TENANT_ID", ""))
+    azure_authority: str = Field(default_factory=lambda: os.getenv("AZURE_AUTHORITY", "https://login.microsoftonline.com/"))
+    azure_scopes: str = Field(default_factory=lambda: os.getenv("AZURE_SCOPES", "api://your-backend-app-id/access_as_user"))
+    azure_use_obo: bool = Field(default_factory=lambda: os.getenv("AZURE_USE_OBO", "True").lower() == "true")
     
     # Azure AI Search
     azure_search_endpoint: str = Field("", env="AZURE_SEARCH_ENDPOINT")
@@ -89,13 +102,10 @@ class Settings(BaseSettings):
     cache_ttl_seconds: int = Field(3600, env="CACHE_TTL_SECONDS")
     embedding_cache_size: int = Field(1000, env="EMBEDDING_CACHE_SIZE")
     
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="allow",
-        protected_namespaces=()  # Allow model_ fields
-    )  # Allow extra fields for flexibility
+    @property
+    def is_development(self) -> bool:
+        """Check if running in development mode"""
+        return self.debug or self.log_level.lower() == "debug"
     
     def __post_init__(self):
         """Validate critical security settings"""

@@ -1,17 +1,18 @@
 import type { SWRConfiguration } from 'swr';
-import type { IChatMessage, IChatParticipant, IChatConversation } from 'src/types/chat';
+import type { IChatMessage, IChatConversation } from 'src/types/chat';
 
 import { useMemo } from 'react';
 import { keyBy } from 'es-toolkit';
+import { v4 as uuidv4 } from 'uuid';
 import useSWR, { mutate } from 'swr';
 
 import axios, { fetcher, endpoints } from 'src/lib/axios';
 
 // ----------------------------------------------------------------------
 
-const enableServer = false;
+const enableServer = true;
 
-const CHART_ENDPOINT = endpoints.chat;
+const CHAT_ENDPOINT = endpoints.chat;
 
 const swrOptions: SWRConfiguration = {
   revalidateIfStale: enableServer,
@@ -19,30 +20,8 @@ const swrOptions: SWRConfiguration = {
   revalidateOnReconnect: enableServer,
 };
 
-// ----------------------------------------------------------------------
 
-type ContactsData = {
-  contacts: IChatParticipant[];
-};
 
-export function useGetContacts() {
-  const url = [CHART_ENDPOINT, { params: { endpoint: 'contacts' } }];
-
-  const { data, isLoading, error, isValidating } = useSWR<ContactsData>(url, fetcher, swrOptions);
-
-  const memoizedValue = useMemo(
-    () => ({
-      contacts: data?.contacts || [],
-      contactsLoading: isLoading,
-      contactsError: error,
-      contactsValidating: isValidating,
-      contactsEmpty: !isLoading && !isValidating && !data?.contacts.length,
-    }),
-    [data?.contacts, error, isLoading, isValidating]
-  );
-
-  return memoizedValue;
-}
 
 // ----------------------------------------------------------------------
 
@@ -51,7 +30,7 @@ type ConversationsData = {
 };
 
 export function useGetConversations() {
-  const url = [CHART_ENDPOINT, { params: { endpoint: 'conversations' } }];
+  const url = `${CHAT_ENDPOINT}/conversations`;
 
   const { data, isLoading, error, isValidating } = useSWR<ConversationsData>(
     url,
@@ -82,9 +61,7 @@ type ConversationData = {
 };
 
 export function useGetConversation(conversationId: string) {
-  const url = conversationId
-    ? [CHART_ENDPOINT, { params: { conversationId, endpoint: 'conversation' } }]
-    : '';
+  const url = conversationId ? `${CHAT_ENDPOINT}/conversation/${conversationId}` : '';
 
   const { data, isLoading, error, isValidating } = useSWR<ConversationData>(
     url,
@@ -109,85 +86,42 @@ export function useGetConversation(conversationId: string) {
 // ----------------------------------------------------------------------
 
 export async function sendMessage(conversationId: string, messageData: IChatMessage) {
-  const conversationsUrl = [CHART_ENDPOINT, { params: { endpoint: 'conversations' } }];
-
-  const conversationUrl = [
-    CHART_ENDPOINT,
-    { params: { conversationId, endpoint: 'conversation' } },
-  ];
-
-  /**
-   * Work on server
-   */
-  if (enableServer) {
-    const data = { conversationId, messageData };
-    await axios.put(CHART_ENDPOINT, data);
+  try {
+    // Use the correct backend API endpoint for sending messages
+    const response = await axios.post(`${CHAT_ENDPOINT}/ask`, {
+      conversation_id: conversationId,
+      message: messageData.body,
+      // Add any other required fields for the backend
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Failed to send message:', error);
+    throw error;
   }
-
-  /**
-   * Work in local
-   */
-  mutate(
-    conversationUrl,
-    (currentData) => {
-      const currentConversation: IChatConversation = currentData.conversation;
-
-      const conversation = {
-        ...currentConversation,
-        messages: [...currentConversation.messages, messageData],
-      };
-
-      return { ...currentData, conversation };
-    },
-    false
-  );
-
-  mutate(
-    conversationsUrl,
-    (currentData) => {
-      const currentConversations: IChatConversation[] = currentData.conversations;
-
-      const conversations: IChatConversation[] = currentConversations.map(
-        (conversation: IChatConversation) =>
-          conversation.id === conversationId
-            ? { ...conversation, messages: [...conversation.messages, messageData] }
-            : conversation
-      );
-
-      return { ...currentData, conversations };
-    },
-    false
-  );
 }
 
 // ----------------------------------------------------------------------
 
 export async function createConversation(conversationData: IChatConversation) {
-  const url = [CHART_ENDPOINT, { params: { endpoint: 'conversations' } }];
-
-  /**
-   * Work on server
-   */
-  const data = { conversationData };
-  const res = await axios.post(CHART_ENDPOINT, data);
-
-  /**
-   * Work in local
-   */
-
-  mutate(
-    url,
-    (currentData) => {
-      const currentConversations: IChatConversation[] = currentData.conversations;
-
-      const conversations: IChatConversation[] = [...currentConversations, conversationData];
-
-      return { ...currentData, conversations };
-    },
-    false
-  );
-
-  return res.data;
+  try {
+    // For new conversations, we can start by asking a question directly
+    // The backend will create the conversation automatically
+    const response = await axios.post(`${CHAT_ENDPOINT}/ask`, {
+      message: conversationData.messages[0]?.body || "Hello",
+      // The backend will create a new conversation ID
+    });
+    
+    return {
+      conversation: {
+        ...conversationData,
+        id: response.data.conversation_id || uuidv4()
+      }
+    };
+  } catch (error) {
+    console.error('Failed to create conversation:', error);
+    throw error;
+  }
 }
 
 // ----------------------------------------------------------------------
@@ -197,7 +131,7 @@ export async function clickConversation(conversationId: string) {
    * Work on server
    */
   if (enableServer) {
-    await axios.get(CHART_ENDPOINT, { params: { conversationId, endpoint: 'mark-as-seen' } });
+    await axios.get(CHAT_ENDPOINT, { params: { conversationId, endpoint: 'mark-as-seen' } });
   }
 
   /**
@@ -205,7 +139,7 @@ export async function clickConversation(conversationId: string) {
    */
 
   mutate(
-    [CHART_ENDPOINT, { params: { endpoint: 'conversations' } }],
+    [CHAT_ENDPOINT, { params: { endpoint: 'conversations' } }],
     (currentData) => {
       const currentConversations: IChatConversation[] = currentData.conversations;
 

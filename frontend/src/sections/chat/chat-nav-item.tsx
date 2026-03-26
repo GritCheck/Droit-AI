@@ -29,10 +29,11 @@ type Props = {
   selected: boolean;
   collapse: boolean;
   onCloseMobile: () => void;
+  onClick: () => void;
   conversation: IChatConversation;
 };
 
-export function ChatNavItem({ selected, collapse, conversation, onCloseMobile }: Props) {
+export function ChatNavItem({ selected, collapse, conversation, onCloseMobile, onClick }: Props) {
   const { user } = useMockedUser();
 
   const router = useRouter();

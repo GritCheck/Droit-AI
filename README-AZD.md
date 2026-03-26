@@ -1,6 +1,6 @@
 # Azure Developer CLI (azd) Setup for DroitAI
 
-This guide walks you through deploying DroitAI system using Azure Developer CLI (azd) with Azure Document Intelligence as exclusive document processing service.
+This guide walks you through deploying the DroitAI **full-stack RAG system** using Azure Developer CLI (azd). The system now consists of separate frontend and backend Azure App Services with dedicated Entra ID authentication.
 
 ## Prerequisites
 
@@ -21,31 +21,100 @@ This guide walks you through deploying DroitAI system using Azure Developer CLI 
 
 ## Quick Deploy
 
-1. **Initialize and Provision**
+### Prerequisites
+1. **Install Azure Developer CLI**
    ```bash
-   cd droitai
-   azd init
-   azd provision
+   # Install azd
+   curl -fsSL https://aka.ms/install-azd.sh | bash
    ```
 
-2. **Deploy Services**
+2. **Azure Authentication**
    ```bash
-   azd deploy
+   azd auth login
    ```
+
+3. **Node.js and Python** (for local development)
+   - Node.js 18+
+   - Python 3.11+
+
+4. **Azure Subscription** with Owner permissions
+
+### Step 1: Setup Entra ID Applications
+
+**Critical**: Create separate Entra ID registrations for frontend and backend:
+
+```bash
+# Windows Command Prompt
+cd scripts
+setup-entra-app.cmd
+
+# This creates two app registrations:
+# - DroitAI-RAG-Backend-App (API)
+# - DroitAI-RAG-Frontend-App (SPA)
+```
+
+### Step 2: Configure Environment
+
+```bash
+# Set backend authentication variables
+azd env set ENTRA_APP_CLIENT_ID <backend-client-id>
+azd env set ENTRA_APP_CLIENT_SECRET <backend-client-secret>
+azd env set ENTRA_APP_TENANT_ID <tenant-id>
+
+# Set frontend authentication variables
+azd env set FRONTEND_ENTRA_CLIENT_ID <frontend-client-id>
+azd env set FRONTEND_ENTRA_CLIENT_SECRET <frontend-client-secret>
+```
+
+### Step 3: Configure Cross-App Access
+
+**Required for OBO flow:**
+
+1. Go to [Azure Portal](https://portal.azure.com)
+2. Navigate to **Microsoft Entra ID** → **App registrations**
+3. Find **DroitAI-RAG-Backend-App**
+4. Click **Expose an API** → **Add a client application**
+5. Enter the **Frontend Client ID** from Step 1
+6. Select authorized scope: `api://<backend-app-id>/access_as_user`
+
+### Step 4: Deploy
+
+```bash
+# Initialize and provision infrastructure
+azd init
+azd provision
+
+# Deploy both frontend and backend
+azd deploy
+
+# Or do everything in one step
+azd up
+```
 
 ## Architecture Overview
 
-The azd template deploys the following Azure services:
+The azd template deploys a **full-stack enterprise RAG system** with the following components:
+
+### Azure App Services (Dual Architecture)
+- **Frontend App Service**: Next.js 15+ application (Node.js 20 LTS)
+- **Backend App Service**: FastAPI Python application (Python 3.11)
+- **Separate Identities**: Each service has its own Entra ID registration
+- **OBO Flow**: Frontend exchanges tokens for backend API access
 
 ### Core Azure Services
 - **Azure AI Search** - Enterprise knowledge store with semantic ranking
 - **Azure OpenAI** - GPT-4 for answer generation
-- **Azure Document Intelligence** - High-fidelity document processing (exclusive)
+- **Azure Document Intelligence** - High-fidelity document processing
 - **Azure Content Safety** - Regulatory compliance filtering
 - **Azure Storage Account** - Document storage with metadata
-- **Azure App Service** - Backend API hosting
-- **Azure Static Web App** - Frontend hosting
-- **Azure Monitor & Application Insights** - Monitoring and logging
+- **Application Insights** - Dual monitoring (frontend + backend)
+- **Log Analytics Workspace** - Centralized logging
+
+### Security Architecture
+- **Entra ID Integration**: Dual app registrations for secure token flow
+- **Managed Identities**: No secrets in application code
+- **Least Privilege**: Granular role-based access control
+- **HTTPS Only**: All services enforce TLS 1.2+
 
 ### Key Features
 - **Azure-First Design**: Only Azure Document Intelligence (no local Docling)
@@ -56,8 +125,10 @@ The azd template deploys the following Azure services:
 ## Configuration
 
 ### Environment Variables
+
 The following environment variables are automatically configured by azd:
 
+#### Azure Services
 ```bash
 # Azure AI Search
 AZURE_SEARCH_ENDPOINT=<endpoint>
@@ -81,42 +152,50 @@ AZURE_CONTENT_SAFETY_KEY=<key>
 # Azure Storage
 AZURE_STORAGE_CONNECTION_STRING=<connection_string>
 AZURE_STORAGE_CONTAINER_NAME=documents
-
-# Azure AD
-AZURE_AD_TENANT_ID=<tenant_id>
-AZURE_AD_CLIENT_ID=<client_id>
-AZURE_AD_CLIENT_SECRET=<client_secret>
 ```
 
-## Document Processing Pipeline
-
-### Azure Document Intelligence Only
-The system now exclusively uses Azure Document Intelligence for document processing:
-
-1. **Upload** → Documents uploaded to Azure Storage
-2. **Process** → Azure Document Intelligence extracts content and metadata
-3. **Chunk** → Intelligent chunking with layout awareness
-4. **Index** → Chunks indexed in Azure AI Search with security metadata
-5. **Search** → Governed search with Azure AD group filtering
-
-### Supported Formats
-- PDF, DOCX, DOC
-- Images: JPG, PNG, BMP, TIFF
-- HTML, TXT
-- And more via Azure Document Intelligence models
-
-## API Endpoints
-
-### Document Ingestion
+#### Authentication (Set in Step 2)
 ```bash
-# Process folder
-POST /api/v1/ingestion/folder
-{
-  "folder_path": "/path/to/documents",
-  "allowed_groups": ["healthcare-staff", "medical-personnel"],
-  "container_name": "documents"
-}
+# Backend Entra ID
+ENTRA_APP_CLIENT_ID=<backend-client-id>
+ENTRA_APP_CLIENT_SECRET=<backend-client-secret>
+ENTRA_APP_TENANT_ID=<tenant-id>
 
+# Frontend Entra ID
+FRONTEND_ENTRA_CLIENT_ID=<frontend-client-id>
+FRONTEND_ENTRA_CLIENT_SECRET=<frontend-client-secret>
+
+# Application URLs
+FRONTEND_URL=https://<frontend-app-name>.azurewebsites.net
+BACKEND_URL=https://<backend-app-name>.azurewebsites.net
+```
+
+#### Application Settings
+```bash
+# Features
+ENABLE_OBO_FLOW=true
+ENABLE_LOCAL_PARSING=false
+LOG_LEVEL=INFO
+```
+
+## Application Endpoints
+
+After deployment, you'll have access to:
+
+### Frontend Application
+- **URL**: `https://<frontend-app-name>.azurewebsites.net`
+- **Health Check**: `https://<frontend-app-name>.azurewebsites.net/api/health`
+- **Features**: Document upload, chat interface, user management
+
+### Backend API
+- **URL**: `https://<backend-app-name>.azurewebsites.net`
+- **API Docs**: `https://<backend-app-name>.azurewebsites.net/docs`
+- **Health Check**: `https://<backend-app-name>.azurewebsites.net/health`
+
+### API Endpoints
+
+#### Document Ingestion
+```bash
 # Upload and process files
 POST /api/v1/ingestion/upload
 Content-Type: multipart/form-data
@@ -130,7 +209,7 @@ GET /api/v1/ingestion/status?container_name=documents
 GET /api/v1/ingestion/health
 ```
 
-### Chat and Search
+#### Chat and Search
 ```bash
 # Chat with RAG
 POST /api/v1/chat
@@ -152,8 +231,8 @@ POST /api/v1/search
 ### Local Development
 1. **Setup Environment**
    ```bash
-   cp .env.example .env
-   # Fill in your Azure credentials
+   # Get Azure credentials
+   azd env get-values > .env.local
    ```
 
 2. **Run Backend**
@@ -170,20 +249,20 @@ POST /api/v1/search
    npm run dev
    ```
 
+### Docker Development
+```bash
+docker-compose -f docker-compose.dev.yml up --build
+```
+
 ### Testing Document Processing
 ```bash
-# Test folder processing
-curl -X POST "http://localhost:8000/api/v1/ingestion/folder" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "folder_path": "./data/raw",
-    "allowed_groups": ["test-users"]
-  }'
-
 # Test file upload
 curl -X POST "http://localhost:8000/api/v1/ingestion/upload" \
   -F "files=@document.pdf" \
   -F "allowed_groups=test-users"
+
+# Test health check
+curl http://localhost:8000/api/v1/ingestion/health
 ```
 
 ## Monitoring and Logging
@@ -225,42 +304,83 @@ curl -X POST "http://localhost:8000/api/v1/ingestion/upload" \
 
 ## Troubleshooting
 
-### Common Issues
+### Common Deployment Issues
 
-1. **Azure Document Intelligence Not Configured**
+1. **Entra ID Configuration Errors**
    ```bash
-   # Check health endpoint
-   curl http://localhost:8000/api/v1/ingestion/health
+   # Verify app registrations exist
+   az ad app list --display-name "DroitAI-RAG-Backend-App"
+   az ad app list --display-name "DroitAI-RAG-Frontend-App"
    ```
 
-2. **Storage Access Issues**
+2. **Cross-App Access Issues**
+   - Ensure Step 3 (Configure Cross-App Access) was completed
+   - Verify frontend Client ID is in backend's "Authorized client applications"
+
+3. **Build Failures**
    ```bash
-   # Verify storage connection
-   az storage account show-connection-string --name <account-name>
+   # Check deployment logs
+   azd logs
+
+   # Redeploy specific service
+   azd deploy --service frontend
+   azd deploy --service app
    ```
 
-3. **Search Index Issues**
+### Common Runtime Issues
+
+1. **Authentication Failures**
    ```bash
-   # Check search service
-   az search service show --name <search-name> --resource-group <rg-name>
+   # Check environment variables
+   azd env get-values
+   
+   # Verify redirect URIs match
+   # Frontend: http://localhost:3000/auth/callback (dev)
+   # Frontend: https://<frontend-url>/auth/callback (prod)
    ```
 
-### Logs and Monitoring
-```bash
-# View application logs
-azd logs --app backend
+2. **Backend API Not Accessible**
+   ```bash
+   # Test backend health
+   curl https://<backend-app-name>.azurewebsites.net/health
+   
+   # Check backend logs
+   azd logs --service app
+   ```
 
-# Monitor Azure services
-az monitor metrics list --resource <resource-id>
-```
+3. **Frontend Build Issues**
+   ```bash
+   # Test frontend health
+   curl https://<frontend-app-name>.azurewebsites.net/api/health
+   
+   # Check frontend logs
+   azd logs --service frontend
+   ```
 
 ## Next Steps
 
-1. **Customize Models**: Configure Azure OpenAI deployments
-2. **Set Up Azure AD**: Configure enterprise authentication
-3. **Define Access Groups**: Set up Azure AD groups for document access
-4. **Configure Content Safety**: Set up custom regulatory categories
-5. **Monitor Performance**: Set up Azure Monitor alerts
+1. **Test Authentication Flow**
+   - Navigate to frontend URL
+   - Complete Entra ID login
+   - Verify API calls work
+
+2. **Upload Test Documents**
+   - Use the document upload feature
+   - Verify processing in Azure Storage
+
+3. **Test RAG Functionality**
+   - Ask questions about uploaded documents
+   - Verify responses include citations
+
+4. **Configure Production Settings**
+   - Update redirect URIs for production domain
+   - Set up custom domains if needed
+   - Configure backup and disaster recovery
+
+5. **Monitor Performance**
+   - Set up Azure Monitor alerts
+   - Review Application Insights metrics
+   - Configure Log Analytics queries
 
 ## Support
 

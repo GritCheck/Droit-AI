@@ -63,6 +63,13 @@ export const paths = {
       updatePassword: `${ROOTS.AUTH}/supabase/update-password`,
       resetPassword: `${ROOTS.AUTH}/supabase/reset-password`,
     },
+    azure: {
+      signIn: `${ROOTS.AUTH}/azure/sign-in`,
+      verify: `${ROOTS.AUTH}/azure/verify`,
+      signUp: `${ROOTS.AUTH}/azure/sign-up`,
+      updatePassword: `${ROOTS.AUTH}/azure/update-password`,
+      resetPassword: `${ROOTS.AUTH}/azure/reset-password`,
+    }
   },
   authDemo: {
     split: {

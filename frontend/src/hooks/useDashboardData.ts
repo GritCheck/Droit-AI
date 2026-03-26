@@ -22,21 +22,13 @@ export interface ChartSeries {
 
 export interface VolumeSeries {
   name: string;
-  data: Array<{ name: string; data: number[] }>;
+  data: Array<{ name: string; value: number }>;
 }
 
-export interface DashboardCharts {
-  distribution: {
-    title: string;
-    subheader: string;
-    series: ChartSeries[];
-  };
-  volume: {
-    title: string;
-    subheader: string;
-    categories: string[];
-    series: VolumeSeries[];
-  };
+export interface DashboardAudit {
+  title: string;
+  headers: Array<{ id: string; label: string }>;
+  rows: Array<{ id: string; category: string; score: number; status: string }>;
 }
 
 export interface DashboardWidget {
@@ -44,16 +36,6 @@ export interface DashboardWidget {
   total: number;
   icon: string;
   series: number;
-}
-
-export interface DashboardWidgets {
-  optimization: DashboardWidget;
-  azureTokens: DashboardWidget;
-}
-
-export interface DashboardAudit {
-  title: string;
-  headers: Array<{ id: string; label: string }>;
 }
 
 export interface DashboardRecent {
@@ -70,13 +52,28 @@ export interface DashboardWelcome {
 
 export interface DashboardOverview {
   stats: {
-    groundedness: DashboardStats;
-    indexing: DashboardStats;
+    uptime: DashboardStats;
+    latency: DashboardStats;
     compliance: DashboardStats;
   };
-  charts: DashboardCharts;
+  charts: {
+    distribution: {
+      title: string;
+      subheader: string;
+      series: ChartSeries[];
+    };
+    volume: {
+      title: string;
+      subheader: string;
+      categories: string[];
+      series: VolumeSeries[];
+    };
+  };
   audit: DashboardAudit;
-  widgets: DashboardWidgets;
+  widgets: {
+    indexing: DashboardWidget;
+    azureTokens: DashboardWidget;
+  };
   recent: DashboardRecent;
 }
 
@@ -128,8 +125,8 @@ export function useDashboardData(): UseDashboardDataReturn {
 // Individual hooks for specific data sections
 export function useDashboardStats() {
   const [data, setData] = useState<{
-    groundedness: DashboardStats;
-    indexing: DashboardStats;
+    uptime: DashboardStats;
+    latency: DashboardStats;
     compliance: DashboardStats;
   } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -158,7 +155,19 @@ export function useDashboardStats() {
 }
 
 export function useDashboardCharts() {
-  const [data, setData] = useState<DashboardCharts | null>(null);
+  const [data, setData] = useState<{
+    distribution: {
+      title: string;
+      subheader: string;
+      series: ChartSeries[];
+    };
+    volume: {
+      title: string;
+      subheader: string;
+      categories: string[];
+      series: VolumeSeries[];
+    };
+  } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -185,7 +194,10 @@ export function useDashboardCharts() {
 }
 
 export function useDashboardWidgets() {
-  const [data, setData] = useState<DashboardWidgets | null>(null);
+  const [data, setData] = useState<{
+    indexing: DashboardWidget;
+    azureTokens: DashboardWidget;
+  } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 

@@ -7,7 +7,7 @@ import { useTheme } from '@mui/material/styles';
 
 import { useDashboardData } from 'src/hooks/useDashboardData';
 
-import { _appFeatured, _appInvoices } from 'src/_mock';
+import { _appFeatured } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { SeoIllustration } from 'src/assets/illustrations';
 
@@ -28,18 +28,14 @@ export function OverviewAppView() {
   const { data: dashboardData, loading, error } = useDashboardData();
   const theme = useTheme();
 
-  // Show loading state
   if (loading) {
     return (
       <DashboardContent maxWidth="xl">
-        <Box sx={{ p: 3, textAlign: 'center' }}>
-          Loading dashboard...
-        </Box>
+        <Box sx={{ p: 3, textAlign: 'center' }}>Loading dashboard...</Box>
       </DashboardContent>
     );
   }
 
-  // Show error state
   if (error || !dashboardData) {
     return (
       <DashboardContent maxWidth="xl">
@@ -70,50 +66,51 @@ export function OverviewAppView() {
           <AppFeatured list={_appFeatured} />
         </Grid>
 
+        {/* --- Summary Stats --- */}
         <Grid size={{ xs: 12, md: 4 }}>
           <AppWidgetSummary
-              title="Groundedness Score"
-              percent={dashboardData.stats.groundedness.percent}
-              total={dashboardData.stats.groundedness.total}
-              chart={{
-                categories: dashboardData.stats.groundedness.categories,
-                series: dashboardData.stats.groundedness.series,
-              }}
-            />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          <AppWidgetSummary
-              title={dashboardData.stats.indexing.title}
-              percent={dashboardData.stats.indexing.percent}
-              total={dashboardData.stats.indexing.total}
-              chart={{
-                colors: [theme.palette.info.main],
-                categories: dashboardData.stats.indexing.categories,
-                series: dashboardData.stats.indexing.series,
-              }}
-            />
-
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          <AppWidgetSummary
-              title={dashboardData.stats.compliance.title}
-              percent={dashboardData.stats.compliance.percent}
-              total={dashboardData.stats.compliance.total}
-              chart={{
-                colors: [theme.palette.error.main],
-                categories: dashboardData.stats.compliance.categories,
-                series: dashboardData.stats.compliance.series,
-              }}
+            title="Uptime"
+            percent={dashboardData.stats.uptime?.percent || 0}
+            total={dashboardData.stats.uptime?.total || 100}
+            chart={{
+              categories: dashboardData.stats.uptime?.categories || [],
+              series: dashboardData.stats.uptime?.series || [],
+            }}
           />
         </Grid>
 
+        <Grid size={{ xs: 12, md: 4 }}>
+          <AppWidgetSummary
+            title="Latency"
+            percent={dashboardData.stats.latency?.percent || 0}
+            total={dashboardData.stats.latency?.total || 1000}
+            chart={{
+              colors: [theme.palette.warning.main],
+              categories: dashboardData.stats.latency?.categories || [],
+              series: dashboardData.stats.latency?.series || [],
+            }}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 4 }}>
+          <AppWidgetSummary
+            title="Compliance"
+            percent={dashboardData.stats.compliance?.percent || 0}
+            total={dashboardData.stats.compliance?.total || 100}
+            chart={{
+              colors: [theme.palette.success.main],
+              categories: dashboardData.stats.compliance?.categories || [],
+              series: dashboardData.stats.compliance?.series || [],
+            }}
+          />
+        </Grid>
+
+        {/* --- Charts --- */}
         <Grid size={{ xs: 12, md: 6, lg: 4 }}>
           <AppCurrentDownload
-            title={dashboardData.charts.distribution.title}
-            subheader={dashboardData.charts.distribution.subheader}
+            title="Resource Distribution"
             chart={{
+              // API provides { label, value }, which matches AppCurrentDownload
               series: dashboardData.charts.distribution.series,
             }}
           />
@@ -121,44 +118,69 @@ export function OverviewAppView() {
 
         <Grid size={{ xs: 12, md: 6, lg: 8 }}>
           <AppAreaInstalled
-            title={dashboardData.charts.volume.title}
-            subheader={dashboardData.charts.volume.subheader}
+            title="Query Volume"
+            subheader="System performance over time"
             chart={{
               categories: dashboardData.charts.volume.categories,
-              series: dashboardData.charts.volume.series,
-            }}/>
+              // Map VolumeSeries[] to the nested structure Apex expects
+              series: dashboardData.charts.volume.series.map((s) => ({
+                name: s.name,
+                data: [{ name: s.name, data: s.data.map(d => typeof d === 'number' ? d : d.value) }],
+              })),
+            }}
+          />
         </Grid>
 
+        {/* --- Audit Table --- */}
         <Grid size={{ xs: 12, lg: 8 }}>
           <AppNewInvoice
-            title={dashboardData.audit.title}
-            tableData={_appInvoices}
-            headCells={dashboardData.audit.headers}
+            title="Governance Audit Trail"
+            tableData={dashboardData.audit.rows?.map((row: any) => ({
+              id: row.id,
+              category: row.category,
+              price: row.score || 0,
+              status: row.status,
+              invoiceNumber: row.id,
+            })) || []}
+            headCells={[
+              { id: 'id', label: 'Request ID' },
+              { id: 'category', label: 'User Group' },
+              { id: 'price', label: 'Safety Score' },
+              { id: 'status', label: 'Status' },
+              { id: '', label: '' },
+            ]}
           />
         </Grid>
 
         <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <AppTopRelated title={dashboardData.recent.title} list={dashboardData.recent.list} />
+          <AppTopRelated title="Recent Documents" list={dashboardData.recent.list} />
         </Grid>
 
-
-
-        <Grid size={{ xs: 12, md: 12, lg: 12 }}>
+        {/* --- Bottom Widgets --- */}
+        <Grid size={{ xs: 12 }}>
           <Box sx={{ gap: 3, display: 'flex', flexDirection: 'row' }}>
             <AppWidget
-              title={dashboardData.widgets.optimization.title}
-              total={dashboardData.widgets.optimization.total}
-              icon={dashboardData.widgets.optimization.icon}
-              chart={{ series: dashboardData.widgets.optimization.series }}
+              title="Index Optimization"
+              total={dashboardData.widgets.indexing?.total || 0}
+              icon="solar:user-rounded-bold"
+              chart={{
+                // Ensure series is a single number, not an array
+                series: Array.isArray(dashboardData.widgets.indexing?.series) 
+                   ? dashboardData.widgets.indexing.series[0] 
+                   : dashboardData.widgets.indexing?.series || 0,
+                colors: [theme.palette.info.light], // Colors must be an array
+              }}
             />
 
             <AppWidget
-              title={dashboardData.widgets.azureTokens.title}
-              total={dashboardData.widgets.azureTokens.total}
-              icon={dashboardData.widgets.azureTokens.icon}
+              title="Azure Tokens"
+              total={dashboardData.widgets.azureTokens?.total || 0}
+              icon="fluent:mail-24-filled"
               chart={{
-                series: dashboardData.widgets.azureTokens.series,
-                colors: [theme.vars.palette.info.light, theme.vars.palette.info.main],
+                series: Array.isArray(dashboardData.widgets.azureTokens?.series)
+                   ? dashboardData.widgets.azureTokens.series[0]
+                   : dashboardData.widgets.azureTokens?.series || 0,
+                colors: [theme.palette.info.main],
               }}
               sx={{ bgcolor: 'info.dark', [`& .${svgColorClasses.root}`]: { color: 'info.light' } }}
             />

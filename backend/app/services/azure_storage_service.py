@@ -251,6 +251,55 @@ class AzureStorageService:
             logger.error(f"Failed to upload document to Azure Storage: {str(e)}")
             return {"error": f"Upload failed: {str(e)}"}
     
+    async def get_storage_usage(self) -> Dict[str, Any]:
+        """
+        Calculate total storage usage in the container
+        Returns storage metrics for the ingestion dashboard
+        """
+        if not self.blob_service_client:
+            logger.warning("Azure Storage client not available, using fallback data")
+            return {
+                "title": "Azure Data Lake (ADLS)",
+                "value": 24000000000,  # GB / 10
+                "total": 24000000000,  # GB
+                "icon": "/assets/icons/apps/ic-app-azure.svg"
+            }
+        
+        try:
+            # Get container client
+            container_client = self.blob_service_client.get_container_client(
+                settings.azure_storage_container_name
+            )
+            
+            total_size = 0
+            file_count = 0
+            
+            # List all blobs and calculate total size
+            blobs = container_client.list_blobs()
+            
+            for blob in blobs:
+                total_size += blob.size
+                file_count += 1
+            
+            logger.info(f"Successfully calculated storage usage: {total_size} bytes across {file_count} files")
+            
+            return {
+                "title": "Azure Data Lake (ADLS)",
+                "value": total_size,
+                "total": total_size,
+                "icon": "/assets/icons/apps/ic-app-azure.svg"
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get storage usage: {str(e)}")
+            # Return fallback data on error
+            return {
+                "title": "Azure Data Lake (ADLS)",
+                "value": 24000000000,  # GB / 10
+                "total": 24000000000,  # GB
+                "icon": "/assets/icons/apps/ic-app-azure.svg"
+            }
+
     async def delete_document(self, document_name: str) -> Dict[str, Any]:
         """
         Delete a document from Azure Blob Storage

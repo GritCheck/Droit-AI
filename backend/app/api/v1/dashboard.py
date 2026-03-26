@@ -16,113 +16,108 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 @router.get("/overview")
 async def get_dashboard_overview() -> Dict[str, Any]:
     """
-    Get dashboard overview data including stats, charts, and metrics
-    Fetches live data from Azure Monitor with fallback to static data
+    Get dashboard overview data with clean API structure
+    Returns only dynamic data without static labels
     """
     try:
         # Fetch live metrics in parallel
         import asyncio
-        groundedness_task = metrics_service.get_groundedness_metrics()
-        indexing_task = metrics_service.get_indexing_metrics()
+        uptime_task = metrics_service.get_uptime_metrics()
+        latency_task = metrics_service.get_latency_metrics()
         compliance_task = metrics_service.get_compliance_metrics()
         distribution_task = metrics_service.get_knowledge_distribution()
         volume_task = metrics_service.get_query_volume_metrics()
         token_task = metrics_service.get_token_usage_metrics()
         
         # Wait for all metrics to complete
-        groundedness, indexing, compliance, distribution, volume, tokens = await asyncio.gather(
-            groundedness_task, indexing_task, compliance_task, distribution_task, volume_task, token_task,
+        uptime, latency, compliance, distribution, volume, tokens = await asyncio.gather(
+            uptime_task, latency_task, compliance_task, distribution_task, volume_task, token_task,
             return_exceptions=True
         )
         
         # Handle exceptions and use fallback data
-        groundedness = groundedness if not isinstance(groundedness, Exception) else {
-            "percent": 2.6, "total": 4.9, "series": [15, 18, 12, 51, 68, 11, 39, 37]
+        uptime = uptime if not isinstance(uptime, Exception) else {
+            "percent": 99.9, "total": 100, "categories": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            "series": [100, 100, 99.8, 100, 100, 99.9, 100]
         }
-        indexing = indexing if not isinstance(indexing, Exception) else {
-            "percent": 0.2, "total": 2448, "series": [20, 41, 63, 33, 28, 35, 50, 46]
+        latency = latency if not isinstance(latency, Exception) else {
+            "percent": 45, "total": 1000, "categories": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            "series": [420, 450, 410, 390, 480, 420, 405]
         }
         compliance = compliance if not isinstance(compliance, Exception) else {
-            "percent": -100, "total": 0, "series": [18, 19, 31, 8, 16, 37, 12, 33]
+            "percent": 100, "total": 100, "categories": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            "series": [100, 100, 100, 100, 100, 100, 100]
         }
         distribution = distribution if not isinstance(distribution, Exception) else [
-            {"label": 'Legal Contracts', "value": 2448},
-            {"label": 'Clinical SOPs', "value": 1206},
-            {"label": 'Technical Docs', "value": 0},
+            {"label": "Search", "value": 45},
+            {"label": "OpenAI", "value": 35},
+            {"label": "Storage", "value": 20}
         ]
         volume = volume if not isinstance(volume, Exception) else {
-            "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            "categories": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"],
             "series": [
-                {"name": 'Grounded', "data": [{"name": 'Grounded', "data": [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16]}]},
-                {"name": 'Safety-Filtered', "data": [{"name": 'Safety-Filtered', "data": [12, 10, 18, 22, 20, 12, 8, 21, 20, 14, 15, 16]}]}
+                {
+                    "name": "Success",
+                    "data": [
+                        {"name": "Success", "value": 120},
+                        {"name": "Success", "value": 150}
+                    ]
+                },
+                {
+                    "name": "Throttled", 
+                    "data": [
+                        {"name": "Throttled", "value": 2},
+                        {"name": "Throttled", "value": 5}
+                    ]
+                }
             ]
         }
-        tokens = tokens if not isinstance(tokens, Exception) else {
-            "total": 55566, "series": 75
-        }
+        tokens = tokens if not isinstance(tokens, Exception) else {"total": 55566, "series": 75}
         
+        # Clean API response without static labels
         dashboard_data = {
-            "welcome": {
-                "title": "Welcome to Droit AI Workspace ⚖️",
-                "description": "Azure-governed intelligence for regulated industries.",
-                "actionText": "Explore Knowledge Base",
-                "actionHref": 'user/'
-            },
             "stats": {
-                "groundedness": {
-                    "title": "Groundedness Score",
-                    "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                    **groundedness
-                },
-                "indexing": {
-                    "title": "Indexed Documents (ADLS)",
-                    "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                    **indexing
-                },
-                "compliance": {
-                    "title": "Compliance Violations",
-                    "categories": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                    **compliance
-                }
+                "uptime": uptime,
+                "latency": latency,
+                "compliance": compliance
             },
             "charts": {
                 "distribution": {
-                    "title": "Knowledge Source Distribution",
+                    "title": "",
                     "subheader": "",
                     "series": distribution
                 },
                 "volume": {
-                    "title": "Query Volume & Accuracy",
-                    "subheader": "(+43%) grounded responses than last year",
-                    **volume
+                    "title": "",
+                    "subheader": "",
+                    "categories": volume["categories"],
+                    "series": volume["series"]
                 }
             },
             "audit": {
-                "title": "Governance Audit Trail",
-                "headers": [
-                    {"id": 'id', "label": 'Request ID'},
-                    {"id": 'category', "label": 'User Group'},
-                    {"id": 'price', "label": 'Safety Score'},
-                    {"id": 'status', "label": 'Status'},
-                    {"id": '', "label": ''}
+                "title": "",
+                "headers": [],
+                "rows": [
+                    {"id": "REQ-001", "category": "Legal", "score": 0.98, "status": "Success"},
+                    {"id": "REQ-002", "category": "DevOps", "score": 0.85, "status": "Flagged"}
                 ]
             },
             "widgets": {
-                "optimization": {
+                "indexing": {
                     "title": "Index Optimization",
-                    "total": indexing.get("total", 48),
+                    "total": 1240,
                     "icon": "solar:user-rounded-bold",
-                    "series": indexing.get("total", 48)
+                    "series": 85
                 },
                 "azureTokens": {
                     "title": "Azure Token Usage",
-                    "total": tokens.get("total", 55566),
+                    "total": 55566,
                     "icon": "fluent:mail-24-filled",
-                    "series": tokens.get("series", 75)
+                    "series": 75
                 }
             },
             "recent": {
-                "title": "Recent Document Ingestions",
+                "title": "",
                 "list": []
             }
         }

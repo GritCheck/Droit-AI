@@ -8,6 +8,22 @@ import { CONFIG } from 'src/global-config';
 
 const axiosInstance = axios.create({ baseURL: CONFIG.serverUrl });
 
+// Add Authorization header interceptor for Azure AD tokens
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // Get token from localStorage
+    const token = localStorage.getItem('azure_access_token');
+    
+    // Add Authorization header if token exists
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => Promise.reject((error.response && error.response.data) || 'Something went wrong!')
@@ -157,7 +173,7 @@ export async function deleter(args: string | [string, AxiosRequestConfig]): Prom
 // ----------------------------------------------------------------------
 
 export const endpoints = {
-  chat: '/api/chat',
+  chat: '/api/v1/chat',
   kanban: '/api/kanban',
   calendar: '/api/calendar',
   auth: { me: '/auth/me', signIn: '/auth/login', signUp: '/auth/register' },

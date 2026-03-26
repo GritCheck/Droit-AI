@@ -1,4 +1,4 @@
-import type { IChatParticipant } from 'src/types/chat';
+'use client';
 
 import { useRef, useMemo, useState, useCallback } from 'react';
 
@@ -23,17 +23,10 @@ import { initialConversation } from './utils/initial-conversation';
 
 type Props = {
   disabled: boolean;
-  recipients: IChatParticipant[];
   selectedConversationId: string;
-  onAddRecipients: (recipients: IChatParticipant[]) => void;
 };
 
-export function ChatMessageInput({
-  disabled,
-  recipients,
-  onAddRecipients,
-  selectedConversationId,
-}: Props) {
+export function ChatMessageInput({ disabled, selectedConversationId }: Props) {
   const router = useRouter();
 
   const { user } = useMockedUser();
@@ -42,7 +35,7 @@ export function ChatMessageInput({
 
   const [message, setMessage] = useState('');
 
-  const myContact: IChatParticipant = useMemo(
+  const myContact = useMemo(
     () => ({
       id: `${user?.id}`,
       role: `${user?.role}`,
@@ -52,14 +45,15 @@ export function ChatMessageInput({
       lastActivity: today(),
       avatarUrl: `${user?.photoURL}`,
       phoneNumber: `${user?.phoneNumber}`,
-      status: 'online',
+      status: 'online' as const,
     }),
     [user]
   );
 
+  // FIXED: Recipients is now an empty array because this is a RAG/AI chat
   const { messageData, conversationData } = initialConversation({
     message,
-    recipients,
+    recipients: [], 
     me: myContact,
   });
 
@@ -75,26 +69,24 @@ export function ChatMessageInput({
 
   const handleSendMessage = useCallback(
     async (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.key !== 'Enter' || !message) return;
+      if (event.key !== 'Enter' || !message.trim()) return;
 
       try {
         if (selectedConversationId) {
-          // If the conversation already exists
+          // If the session already exists
           await sendMessage(selectedConversationId, messageData);
         } else {
-          // If the conversation does not exist
+          // If starting a brand new AI session
           const res = await createConversation(conversationData);
           router.push(`${paths.dashboard.chat}?id=${res.conversation.id}`);
-
-          onAddRecipients([]);
         }
       } catch (error) {
-        console.error(error);
+        console.error('Failed to send message:', error);
       } finally {
         setMessage('');
       }
     },
-    [conversationData, message, messageData, onAddRecipients, router, selectedConversationId]
+    [conversationData, message, messageData, router, selectedConversationId]
   );
 
   return (
@@ -105,7 +97,7 @@ export function ChatMessageInput({
         value={message}
         onKeyUp={handleSendMessage}
         onChange={handleChangeMessage}
-        placeholder="Type a message"
+        placeholder="Type a message..."
         disabled={disabled}
         startAdornment={
           <IconButton>
@@ -125,14 +117,12 @@ export function ChatMessageInput({
             </IconButton>
           </Box>
         }
-        sx={[
-          (theme) => ({
-            px: 1,
-            height: 56,
-            flexShrink: 0,
-            borderTop: `solid 1px ${theme.vars.palette.divider}`,
-          }),
-        ]}
+        sx={{
+          px: 1,
+          height: 56,
+          flexShrink: 0,
+          borderTop: (theme) => `solid 1px ${theme.vars.palette.divider}`,
+        }}
       />
 
       <input type="file" ref={fileRef} style={{ display: 'none' }} />

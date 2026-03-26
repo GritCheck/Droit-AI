@@ -35,6 +35,32 @@ module aiServices 'modules/ai-services.bicep' = {
   }
 }
 
+module monitoring 'modules/monitoring.bicep' = {
+  name: 'monitoringDeployment'
+  params: {
+    location: location
+    appName: appName
+    useUniqueNaming: true
+    azureOpenAiAccountName: aiServices.outputs.openaiAccountName
+    azureSearchServiceName: search.outputs.searchServiceName
+    azureStorageAccountName: storage.outputs.storageAccountName
+  }
+}
+
+module host 'modules/host.bicep' = {
+  name: 'hostDeployment'
+  params: {
+    location: location
+    appName: appName
+    environment: environment
+    useUniqueNaming: false
+    appCommandLine: './startup.sh'
+    backendApiEndpoint: 'https://${appName}-app.azurewebsites.net'
+    appInsightsConnectionString: monitoring.outputs.appInsightsConnectionString
+    logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId
+  }
+}
+
 // AI Services Outputs
 output docIntelAccountName string = aiServices.outputs.docIntelAccountName
 output docIntelAccountId string = aiServices.outputs.docIntelAccountId
@@ -50,17 +76,7 @@ output openaiKey string = aiServices.outputs.openaiKey
 output chatDeploymentName string = aiServices.outputs.chatDeploymentName
 output embeddingDeploymentName string = aiServices.outputs.embeddingDeploymentName
 
-module host 'modules/host.bicep' = {
-  name: 'hostDeployment'
-  params: {
-    location: location
-    appName: appName
-    environment: environment
-    appCommandLine: './startup.sh'
-  }
-}
-
-// Role Assignments for Least Privilege Access
+// Role Assignments for Least Privilege Access - Backend
 resource storageRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid('${appName}-identity', 'st${uniqueString(appName)}', 'StorageBlobDataContributor')
   properties: {
@@ -124,8 +140,7 @@ resource contentSafetyRoleAssignment 'Microsoft.Authorization/roleAssignments@20
   }
 }
 
-// Storage Data Plane Access for App Service Managed Identity
-// This is CRITICAL - Management plane (Owner) != Data plane (file access)
+// Storage Data Plane Access for Backend App Service Managed Identity
 resource storageDataContributorAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid('${appName}-storage-data-plane-${uniqueString(appName)}', 'StorageBlobDataContributor')
   properties: {
@@ -147,5 +162,7 @@ output storageAccountKey string = storage.outputs.storageAccountKey
 output storageContainerName string = storage.outputs.blobContainerName
 output appServiceName string = host.outputs.appServiceName
 output appServiceEndpoint string = host.outputs.appServiceEndpoint
+output frontendAppServiceName string = host.outputs.frontendAppServiceName
+output frontendAppServiceEndpoint string = host.outputs.frontendAppServiceEndpoint
 output appServiceIdentityId string = host.outputs.appServiceIdentityId
 output appInsightsInstrumentationKey string = host.outputs.appInsightsInstrumentationKey

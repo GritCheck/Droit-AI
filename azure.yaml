@@ -3,30 +3,6 @@ target: azure
 version: 1.0.0
 description: Azure-first enterprise RAG system with Document Intelligence - DroitAI
 
-# Hooks configuration (temporarily disabled for deployment)
-# hooks:
-#   predeploy:
-#     app:
-#       windows:
-#         shell: pwsh
-#         run: |
-#           cd backend
-#           if (Test-Path ".\venv\Scripts\Activate.ps1") {
-#             .\venv\Scripts\Activate.ps1
-#           }
-#           python -m pytest tests/test_apis.py -v --tb=short
-#       posix:
-#         shell: bash
-#         run: |
-#           cd backend
-#           if [ -f "venv/bin/activate" ]; then
-#             source venv/bin/activate
-#           fi
-#           python -m pytest tests/test_apis.py -v --tb=short
-#   postdeploy:
-#     app:
-#       shell: echo "Deployment completed successfully!"
-
 # Azure services to provision
 services:
   app:
@@ -53,6 +29,28 @@ services:
     env:
       # Keep your existing environment variables...
       PYTHONPATH: /home/site/wwwroot
+
+  frontend:
+    # Next.js frontend application
+    project: ./frontend
+    host: appservice
+    language: ts
+    runtime: node
+    runtimeVersion: 20
+    port: 3000
+    healthCheck: /api/health
+    
+    hooks:
+      predeploy:
+        windows:
+          shell: pwsh
+          run: npm run build
+        posix:
+          shell: bash
+          run: npm run build
+
+    env:
+      NODE_ENV: production
 
 # Infrastructure as Code
 infrastructure:
@@ -89,7 +87,7 @@ environment:
   
   # Application
   - name: FRONTEND_URL
-    value: $FRONTEND_URL
+    value: $FRONTEND_ENDPOINT
   - name: BACKEND_URL
     value: $APP_SERVICE_ENDPOINT
   - name: ENABLE_LOCAL_PARSING

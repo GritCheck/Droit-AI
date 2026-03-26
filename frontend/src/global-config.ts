@@ -11,7 +11,7 @@ export type ConfigValue = {
   assetsDir: string;
   isStaticExport: boolean;
   auth: {
-    method: 'jwt' | 'amplify' | 'firebase' | 'supabase' | 'auth0';
+    method: 'jwt' | 'amplify' | 'firebase' | 'supabase' | 'auth0' | 'azure';
     skip: boolean;
     redirectPath: string;
   };
@@ -28,23 +28,30 @@ export type ConfigValue = {
   amplify: { userPoolId: string; userPoolWebClientId: string; region: string };
   auth0: { clientId: string; domain: string; callbackUrl: string };
   supabase: { url: string; key: string };
+  azure: {
+    clientId: string;
+    tenantId: string;
+    authority: string;
+    redirectUri: string;
+    scopes: string[];
+  };
 };
 
 // ----------------------------------------------------------------------
 
 export const CONFIG: ConfigValue = {
-  appName: 'Minimal UI',
+  appName: 'Droit AI',
   appVersion: packageJson.version,
   serverUrl: process.env.NEXT_PUBLIC_SERVER_URL ?? '',
   assetsDir: process.env.NEXT_PUBLIC_ASSETS_DIR ?? '',
   isStaticExport: JSON.parse(`${process.env.BUILD_STATIC_EXPORT}`),
   /**
    * Auth
-   * @method jwt | amplify | firebase | supabase | auth0
+   * @method jwt | amplify | firebase | supabase | auth0 | azure
    */
   auth: {
-    method: 'jwt',
-    skip: true,
+    method: 'azure',
+    skip: false,
     redirectPath: paths.dashboard.root,
   },
   /**
@@ -85,5 +92,20 @@ export const CONFIG: ConfigValue = {
   supabase: {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
     key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+  },
+  /**
+   * Azure AD
+   */
+  azure: {
+    clientId: process.env.NEXT_PUBLIC_AZURE_CLIENT_ID ?? '',
+    tenantId: process.env.NEXT_PUBLIC_AZURE_TENANT_ID ?? '',
+    authority: process.env.NEXT_PUBLIC_AZURE_AUTHORITY ?? 'https://login.microsoftonline.com',
+    redirectUri: process.env.NEXT_PUBLIC_AZURE_REDIRECT_URI ?? (typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : ''),
+    scopes: [
+      process.env.NEXT_PUBLIC_AZURE_API_SCOPE ?? 'api://backend/access_as_user',
+      'openid',
+      'profile',
+      'email'
+    ],
   },
 };

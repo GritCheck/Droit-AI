@@ -4,23 +4,42 @@ A production-ready RAG (Retrieval-Augmented Generation) application with enterpr
 
 ## 🏗️ Architecture
 
-- **Frontend**: Next.js 15+ with App Router
-- **Backend**: FastAPI with async/await
-- **Authentication**: Entra ID with OBO token flow
-- **Search**: Azure AI Search (Free tier)
-- **AI**: Azure OpenAI (GPT-4o)
+DroitAI is a **full-stack enterprise RAG system** with separate frontend and backend services:
+
+### Frontend (Next.js)
+- **Framework**: Next.js 15+ with App Router
+- **Hosting**: Azure App Service (Node.js 20 LTS)
+- **Authentication**: Entra ID SPA registration
+- **Features**: Document upload, chat interface, document management
+
+### Backend (FastAPI) 
+- **Framework**: FastAPI with async/await
+- **Hosting**: Azure App Service (Python 3.11)
+- **Authentication**: Entra ID Web API with OBO token flow
+- **Features**: RAG processing, document intelligence, AI orchestration
+
+### Azure Services
+- **Authentication**: Entra ID with On-Behalf-Of (OBO) flow
+- **Search**: Azure AI Search with semantic ranking
+- **AI**: Azure OpenAI (GPT-4o) for answer generation
 - **Document Processing**: Azure Document Intelligence (F0 tier)
 - **Content Safety**: Azure Content Safety (F0 tier)
 - **Storage**: Azure Storage with security best practices
 - **Monitoring**: Application Insights + Log Analytics
 - **Deployment**: Azure Developer CLI (azd) with Bicep
 
+### Security Architecture
+- **Separate Identities**: Frontend and backend have dedicated Entra ID registrations
+- **OBO Flow**: Frontend exchanges tokens for backend API access
+- **Least Privilege**: Managed identities with minimal required permissions
+- **HTTPS Only**: All services enforce TLS 1.2+
+
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Azure CLI installed
 - Azure Developer CLI (azd) installed
-- Access to Azure subscription
+- Access to Azure subscription with Owner permissions
 
 ### 1. Clone Repository
 ```bash
@@ -28,30 +47,68 @@ git clone <repository>
 cd droitai
 ```
 
-### 2. Setup Entra ID (Required)
+### 2. Setup Entra ID Applications (Critical)
+
+This creates **separate** Entra ID registrations for frontend and backend:
+
 ```bash
 # Windows Command Prompt
 cd scripts
 setup-entra-app.cmd
 
-# Linux/Mac Bash
-cd scripts
-./setup-entra-app.sh
+# Follow the prompts to create both app registrations
+# This will generate Client IDs and Secrets for both services
 ```
 
-### 3. Deploy to Azure
+### 3. Configure Environment
+
 ```bash
-# Deploy all infrastructure and applications
+# Set backend authentication variables
+azd env set ENTRA_APP_CLIENT_ID <backend-client-id>
+azd env set ENTRA_APP_CLIENT_SECRET <backend-client-secret>
+azd env set ENTRA_APP_TENANT_ID <tenant-id>
+
+# Set frontend authentication variables
+azd env set FRONTEND_ENTRA_CLIENT_ID <frontend-client-id>
+azd env set FRONTEND_ENTRA_CLIENT_SECRET <frontend-client-secret>
+```
+
+### 4. Configure Cross-App Access
+
+**Required for OBO flow to work:**
+
+1. Go to [Azure Portal](https://portal.azure.com)
+2. Navigate to **Microsoft Entra ID** → **App registrations**
+3. Find **DroitAI-RAG-Backend-App**
+4. Click **Expose an API** → **Add a client application**
+5. Enter the **Frontend Client ID** from Step 2
+6. Select authorized scope: `api://<backend-app-id>/access_as_user`
+
+### 5. Deploy to Azure
+
+```bash
+# Deploy all infrastructure and both applications
 azd up
 
-# Get environment variables for local development
+# Get deployment URLs and environment variables
 azd env get-values
 ```
 
-### 4. Access the Application
-- Frontend: `https://<app-name>.azurewebsites.net`
-- Backend API: `https://<app-name>-app.azurewebsites.net`
-- API Docs: `https://<app-name>-app.azurewebsites.net/docs`
+### 6. Verify Deployment
+
+```bash
+# Test backend health
+curl https://<backend-app-name>.azurewebsites.net/health
+
+# Test frontend health
+curl https://<frontend-app-name>.azurewebsites.net/api/health
+
+# Access the application
+# Frontend: https://<frontend-app-name>.azurewebsites.net
+# Backend API: https://<backend-app-name>.azurewebsites.net/docs
+```
+
+📖 **For detailed deployment instructions**, see [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 ## 🔧 Local Development
 
@@ -105,26 +162,35 @@ docker-compose -f docker-compose.dev.yml up --build
 │   └── /models                # Pydantic schemas
 
 ├── /infra (Infrastructure as Code)
-│   ├── main.bicep            # Azure resources with security
-│   └── azure.yaml            # AZD configuration
+│   ├── main.bicep            # Azure resources orchestration
+│   ├── /modules
+│   │   ├── host.bicep        # Frontend + backend app services
+│   │   ├── frontend.bicep     # Dedicated frontend module
+│   │   ├── storage.bicep      # Azure Storage
+│   │   ├── search.bicep       # Azure AI Search
+│   │   ├── ai-services.bicep  # OpenAI, Document Intelligence
+│   │   └── monitoring.bicep   # App Insights, Log Analytics
+│   └── azure.yaml            # AZD service configuration
 
 ├── /scripts
-│   ├── setup-entra-app.ps1   # Windows Entra ID setup
-│   └── setup-entra-app.sh    # Linux/Mac Entra ID setup
+│   └── setup-entra-app.cmd   # Windows Entra ID setup (both apps)
 
 ├── /docs
-│   └── entra-id-setup.md     # Detailed setup guide
+│   └── DEPLOYMENT.md         # Comprehensive deployment guide
 
-└── docker-compose.dev.yml    # Local development
+├── azure.yaml                 # AZD configuration
+├── docker-compose.dev.yml     # Local development
+└── README-AZD.md             # Azure-specific instructions
 ```
 
 ## 🔐 Security Features
 
 ### Enterprise Security
+- **Separate Identities**: Frontend and backend have dedicated Entra ID registrations
+- **OBO Token Flow**: Frontend exchanges tokens for backend API access
 - **Least Privilege Access**: Granular role assignments for each service
 - **Managed Identity**: No secrets in code, uses Azure AD identities
 - **Network Security**: Storage with deny-by-default, HTTPS only
-- **OBO Token Flow**: Secure user delegation across services
 - **Content Safety**: Built-in content filtering and moderation
 
 ### Compliance
@@ -142,7 +208,8 @@ docker-compose -f docker-compose.dev.yml up --build
 
 ## 🌟 Key Features
 
-- **Enterprise Authentication**: Entra ID with single app setup
+- **Enterprise Authentication**: Entra ID with dual-app OBO flow
+- **Full-Stack Architecture**: Separate frontend and backend Azure App Services
 - **Document Intelligence**: Support for PDF, Word, images, and more
 - **Intelligent Search**: Azure AI Search with semantic capabilities
 - **Content Safety**: Built-in moderation and filtering
@@ -191,9 +258,10 @@ azd env set LOG_LEVEL DEBUG
 
 ## 📚 Documentation
 
-- [Entra ID Setup Guide](docs/entra-id-setup.md)
-- [API Documentation](https://<app-name>-app.azurewebsites.net/docs)
-- [Architecture Overview](docs/architecture.md)
+- [📋 Deployment Guide](./DEPLOYMENT.md) - Step-by-step deployment instructions
+- [🔧 Azure Setup Guide](./README-AZD.md) - Azure Developer CLI specific instructions
+- [📖 API Documentation](https://<backend-app-name>.azurewebsites.net/docs) - Interactive API docs
+- [🏗️ Architecture Overview](./ARCHITECTURE.md) - System design and security
 
 ## 🤝 Contributing
 

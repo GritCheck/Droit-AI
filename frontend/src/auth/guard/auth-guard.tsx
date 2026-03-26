@@ -23,6 +23,7 @@ const signInPaths = {
   amplify: paths.auth.amplify.signIn,
   firebase: paths.auth.firebase.signIn,
   supabase: paths.auth.supabase.signIn,
+  azure: paths.auth.azure.signIn, // Use the correct Azure AD path
 };
 
 export function AuthGuard({ children }: AuthGuardProps) {
