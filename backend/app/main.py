@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 import time
 
 from app.core.config import get_settings
-from app.api.v1 import auth, chat, search, ingestion, dashboard, ingestion_data, responsible, security, documents
+from app.api.v1.api import api_router
 from app.middleware.rate_limiter import RateLimitMiddleware
 
 # Configure logging
@@ -101,16 +101,8 @@ async def root():
     }
 
 
-# Include API routers
-app.include_router(auth.router, prefix="/api/v1")
-app.include_router(chat.router, prefix="/api/v1")
-app.include_router(search.router, prefix="/api/v1")
-app.include_router(ingestion.router, prefix="/api/v1")
-app.include_router(dashboard.router, prefix="/api/v1")
-app.include_router(ingestion_data.router, prefix="/api/v1")
-app.include_router(responsible.router, prefix="/api/v1")
-app.include_router(security.router, prefix="/api/v1")
-app.include_router(documents.router, prefix="/api/v1")
+# Include API router
+app.include_router(api_router, prefix="/api/v1")
 
 
 # Exception handlers

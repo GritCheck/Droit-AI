@@ -13,7 +13,7 @@ import jwt
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/auth", tags=["authentication"])
+router = APIRouter()
 security = HTTPBearer()
 
 settings = get_settings()
@@ -46,8 +46,8 @@ async def azure_callback(token_request: TokenRequest):
     try:
         # 1. Exchange code for token
         token_data = {
-            "client_id": settings.azure_frontend_client_id, 
-            "client_secret": settings.azure_frontend_client_secret, 
+            "client_id": settings.azure_client_id, 
+            "client_secret": settings.azure_client_secret, 
             "code": token_request.code,
             "redirect_uri": token_request.redirect_uri,
             "grant_type": "authorization_code",
@@ -108,41 +108,22 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     try:
         token = credentials.credentials
 
-        # Validate token with Azure AD
-        async with httpx.AsyncClient() as client:
-            # Get user info from Azure AD using the access token
-            user_info_response = await client.get(
-                "https://graph.microsoft.com/v1.0/me",
-                headers={"Authorization": f"Bearer {token}"}
-            )
-
-            if user_info_response.status_code != 200:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid or expired access token"
-                )
-
-            user_info = user_info_response.json()
-
-            return UserInfo(
-                id=user_info.get("id", ""),
-                displayName=user_info.get("displayName", ""),
-                email=user_info.get("mail") or user_info.get("userPrincipalName", ""),
-                role="user",  # Default role
-                photoURL=None
-            )
-
-    except httpx.HTTPError as e:
-        logger.error(f"HTTP error during user info fetch: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch user information"
+        # Decode token locally (same approach as callback)
+        decoded = jwt.decode(token, options={"verify_signature": False})
+        
+        return UserInfo(
+            id=decoded.get("oid") or decoded.get("sub", ""),
+            displayName=decoded.get("name", ""),
+            email=decoded.get("preferred_username") or decoded.get("email", ""),
+            role="user",  # Default role
+            photoURL=None
         )
+
     except Exception as e:
         logger.error(f"Unexpected error during user info fetch: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get user information"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired access token"
         )
 
 # ----------------------------------------------------------------------

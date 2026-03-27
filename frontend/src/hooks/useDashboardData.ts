@@ -6,75 +6,53 @@ import { handleError } from 'src/utils/errorHandler';
 
 import { fetcher, endpoints } from 'src/lib/axios';
 
-// Types for dashboard data
-export interface DashboardStats {
-  title: string;
-  percent: number;
-  total: number;
-  categories: string[];
-  series: number[];
+// Types for dashboard data matching API response
+export interface TrendDataPoint {
+  date: string;
+  count?: number;
+  score?: number;
 }
 
-export interface ChartSeries {
-  label: string;
-  value: number;
+export interface DashboardSummary {
+  total_contracts_audited: number;
+  avg_cost_per_audit_tokens: number;
+  groundedness_rate: number;
+  audit_success_rate: number;
 }
 
-export interface VolumeSeries {
-  name: string;
-  data: Array<{ name: string; value: number }>;
+export interface RiskAlerts {
+  high_risk_clauses_detected: number;
+  compliance_issues: number;
+  critical_findings: number;
 }
 
-export interface DashboardAudit {
-  title: string;
-  headers: Array<{ id: string; label: string }>;
-  rows: Array<{ id: string; category: string; score: number; status: string }>;
+export interface PerformanceMetrics {
+  avg_response_time_ms: number;
+  cost_efficiency_score: number;
+  token_utilization_rate: number;
 }
 
-export interface DashboardWidget {
-  title: string;
-  total: number;
-  icon: string;
-  series: number;
+export interface TrendAnalysis {
+  daily_audits: TrendDataPoint[];
+  groundedness_trend: TrendDataPoint[];
 }
 
-export interface DashboardRecent {
-  title: string;
-  list: any[];
-}
-
-export interface DashboardWelcome {
-  title: string;
-  description: string;
-  actionText: string;
-  actionHref: string;
+export interface ComplianceBreakdown {
+  fully_compliant: number;
+  partially_compliant: number;
+  non_compliant: number;
+  total_reviewed: number;
+  compliance_rate: number;
 }
 
 export interface DashboardOverview {
-  stats: {
-    uptime: DashboardStats;
-    latency: DashboardStats;
-    compliance: DashboardStats;
-  };
-  charts: {
-    distribution: {
-      title: string;
-      subheader: string;
-      series: ChartSeries[];
-    };
-    volume: {
-      title: string;
-      subheader: string;
-      categories: string[];
-      series: VolumeSeries[];
-    };
-  };
-  audit: DashboardAudit;
-  widgets: {
-    indexing: DashboardWidget;
-    azureTokens: DashboardWidget;
-  };
-  recent: DashboardRecent;
+  summary: DashboardSummary;
+  risk_alerts: RiskAlerts;
+  performance_metrics: PerformanceMetrics;
+  trend_analysis: TrendAnalysis;
+  compliance_breakdown: ComplianceBreakdown;
+  data_source: string;
+  last_updated: string;
 }
 
 export interface UseDashboardDataReturn {
@@ -94,7 +72,7 @@ export function useDashboardData(): UseDashboardDataReturn {
       setLoading(true);
       setError(null);
       
-      const response = await fetcher(endpoints.dashboard.overview);
+      const response = await fetcher(endpoints.dashboard.managementOverview);
       setData(response);
     } catch (err) {
       setError(handleError(err, { 
@@ -120,105 +98,4 @@ export function useDashboardData(): UseDashboardDataReturn {
     error,
     refetch,
   };
-}
-
-// Individual hooks for specific data sections
-export function useDashboardStats() {
-  const [data, setData] = useState<{
-    uptime: DashboardStats;
-    latency: DashboardStats;
-    compliance: DashboardStats;
-  } | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchStats = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetcher(endpoints.dashboard.stats);
-      setData(response);
-    } catch (err) {
-      console.error('Failed to fetch dashboard stats:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch dashboard stats');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  return { data, loading, error, refetch: fetchStats };
-}
-
-export function useDashboardCharts() {
-  const [data, setData] = useState<{
-    distribution: {
-      title: string;
-      subheader: string;
-      series: ChartSeries[];
-    };
-    volume: {
-      title: string;
-      subheader: string;
-      categories: string[];
-      series: VolumeSeries[];
-    };
-  } | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchCharts = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetcher(endpoints.dashboard.charts);
-      setData(response);
-    } catch (err) {
-      console.error('Failed to fetch dashboard charts:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch dashboard charts');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCharts();
-  }, []);
-
-  return { data, loading, error, refetch: fetchCharts };
-}
-
-export function useDashboardWidgets() {
-  const [data, setData] = useState<{
-    indexing: DashboardWidget;
-    azureTokens: DashboardWidget;
-  } | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchWidgets = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetcher(endpoints.dashboard.widgets);
-      setData(response);
-    } catch (err) {
-      console.error('Failed to fetch dashboard widgets:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch dashboard widgets');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchWidgets();
-  }, []);
-
-  return { data, loading, error, refetch: fetchWidgets };
 }

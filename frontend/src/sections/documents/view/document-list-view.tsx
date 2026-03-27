@@ -3,13 +3,10 @@
 import type { TableHeadCellProps } from 'src/components/table';
 import type { IDocumentTableFilters } from 'src/types/document';
 
-import { varAlpha } from 'minimal-shared/utils';
 import { useBoolean, useSetState } from 'minimal-shared/hooks';
 import { useRef, useMemo, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
@@ -25,7 +22,6 @@ import { useDocuments, useDocumentOperations } from 'src/hooks/useDocuments';
 import { _roles } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -34,7 +30,6 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import {
   useTable,
   emptyRows,
-  rowInPage,
   TableNoData,
   TableEmptyRows,
   TableHeadCustom,
@@ -48,22 +43,13 @@ import { DocumentTableFiltersResult } from '../document-table-filters-result';
 
 // ----------------------------------------------------------------------
 
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'All' },
-  { value: 'indexed', label: 'Indexed' },
-  { value: 'processing', label: 'Processing' },
-  { value: 'failed', label: 'Failed' },
-  { value: 'flagged', label: 'Flagged' }
-];
+// Status options removed - backend doesn't provide document status
 
 const TABLE_HEAD: TableHeadCellProps[] = [
   { id: 'name', label: 'Document Name' },
-  { id: 'data_limit', label: 'Chunk Size (tokens)', width: 120 },
-  { id: 'rate_limit', label: 'Vector Dimensions', width: 120 },
-  { id: 'status', label: 'Index Status', width: 100 },
-  { id: 'time_limit', label: 'Last Synced', width: 120 },
-  { id: 'price', label: 'Security Level (RLS)', width: 140 },
-  { id: 'Actions', width: 88 }, // for actions (edit/delete)
+  { id: 'size', label: 'Size (bytes)', width: 120 },
+  { id: 'created_at', label: 'Created At', width: 180 },
+  { id: 'Actions', width: 88 }, // for actions (view/delete)
 ];
 
 // ----------------------------------------------------------------------
@@ -79,11 +65,11 @@ export function KnowledgeBaseManager() {
   }, [table]);
 
   const filters = useSetState<IDocumentTableFilters>({ name: '', type: [], status: 'all' });
-  const { state: currentFilters, setState: updateFilters } = filters;
+  const { state: currentFilters } = filters;
 
   // Use API hooks instead of static data - initialize with empty filters first
-  const { data: tableData, error, total, refetch } = useDocuments();
-  const { deleteDocument, loading: operationLoading } = useDocumentOperations();
+  const { data: tableData, error, total } = useDocuments();
+  const { loading: operationLoading } = useDocumentOperations();
 
   // Show error toast when there's an error
   useEffect(() => {
@@ -100,52 +86,20 @@ export function KnowledgeBaseManager() {
 
   const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
 
-  // Delete a single row using API - fixed race condition
+  // Delete a single row - not implemented yet
   const handleDeleteRow = useCallback(
     async (id: string) => {
-      if (!tableData) return;
-      try {
-        await deleteDocument(id);
-        toast.success('Document removed from vector index!');
-        
-        // Use ref to get current table state and avoid stale closures
-        const currentTable = tableRef.current;
-        const currentDataInPage = rowInPage(dataFiltered, currentTable.page, currentTable.rowsPerPage);
-        currentTable.onUpdatePageDeleteRow(currentDataInPage.length);
-        refetch(); // Refresh data
-      } catch {
-        toast.error('Failed to remove document!');
-      }
+      toast.error('Delete operation not yet implemented');
     },
-    [tableData, deleteDocument, dataFiltered, refetch]
+    []
   );
 
-  // Delete selected rows using API - fixed race condition
+  // Delete selected rows - not implemented yet
   const handleDeleteRows = useCallback(async () => {
-    if (!tableData) return;
-    const docsToDelete = tableData.filter((row: { id: string; }) => table.selected.includes(row.id));
-    if (docsToDelete.length === 0) return;
-    try {
-      await Promise.all(docsToDelete.map((doc: { id: string; }) => deleteDocument(doc.id)));
-      toast.success('Documents removed from vector index!');
-      
-      // Use ref to get current table state and avoid stale closures
-      const currentTable = tableRef.current;
-      const currentDataInPage = rowInPage(dataFiltered, currentTable.page, currentTable.rowsPerPage);
-      currentTable.onUpdatePageDeleteRows(currentDataInPage.length, dataFiltered.length);
-      refetch(); // Refresh data
-    } catch {
-      toast.error('Failed to remove documents!');
-    }
-  }, [tableData, table.selected, deleteDocument, dataFiltered, refetch]);
+    toast.error('Delete operation not yet implemented');
+  }, []);
 
-  const handleFilterStatus = useCallback(
-    (event: React.SyntheticEvent, newValue: string) => {
-      table.onResetPage();
-      updateFilters({ status: newValue });
-    },
-    [updateFilters, table]
-  );
+  // Status filter functionality removed - backend doesn't provide document status
 
   const renderConfirmDialog = () => (
     <ConfirmDialog
@@ -198,44 +152,7 @@ export function KnowledgeBaseManager() {
         />
 
         <Card>
-          <Tabs
-            value={currentFilters.status}
-            onChange={handleFilterStatus}
-            sx={[
-              (theme) => ({
-                px: 2.5,
-                boxShadow: `inset 0 -2px 0 0 ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
-              }),
-            ]}
-          >
-            {STATUS_OPTIONS.map((tab) => (
-              <Tab
-                key={tab.value}
-                iconPosition="end"
-                value={tab.value}
-                label={tab.label}
-                icon={
-                  <Label
-                    variant={
-                      ((tab.value === 'all' || tab.value === currentFilters.status) && 'filled') ||
-                      'soft'
-                    }
-                    color={
-                      (tab.value === 'indexed' && 'success') ||
-                      (tab.value === 'processing' && 'warning') ||
-                      (tab.value === 'failed' && 'error') ||
-                      (tab.value === 'flagged' && 'info') ||
-                      'default'
-                    }
-                  >
-                    {['indexed', 'processing', 'failed', 'flagged'].includes(tab.value)
-                      ? (tableData?.filter((doc: any) => doc?.status === tab.value) || []).length
-                      : (tableData?.length || 0)}
-                  </Label>
-                }
-              />
-            ))}
-          </Tabs>
+          {/* Status tabs removed - backend doesn't provide document status */}
 
           <DocumentTableToolbar
             filters={filters}

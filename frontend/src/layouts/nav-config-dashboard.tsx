@@ -90,8 +90,7 @@ export const navData: NavSectionProps['data'] = [
         path: paths.dashboard.documents.list, // Updated from package to documents
         icon: ICONS.file,
         children: [
-          { title: 'All Documents', path: paths.dashboard.documents.list },
-          { title: 'Security Groups', path: paths.dashboard.permission }, // Reuse Permission guard
+          { title: 'All Documents', path: paths.dashboard.documents.list }, // Reuse Permission guard
         ],
       },
     ],

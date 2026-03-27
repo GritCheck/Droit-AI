@@ -26,7 +26,7 @@ import { FloatLine, FloatXIcon } from './components/svg-elements';
 // ----------------------------------------------------------------------
 
 export function HomePricing({ sx, ...other }: BoxProps) {
-  const tabs = useTabs('Standard');
+  const tabs = useTabs('Starter');
 
   const renderDescription = () => (
     <SectionTitle
@@ -45,7 +45,7 @@ export function HomePricing({ sx, ...other }: BoxProps) {
           key={plan.license}
           plan={plan}
           sx={(theme) => ({
-            ...(plan.license === 'Plus' && {
+            ...(plan.license === 'Professional' && {
               [theme.breakpoints.down(1440)]: {
                 borderLeft: `dashed 1px ${varAlpha(theme.vars.palette.grey['500Channel'], 0.2)}`,
                 borderRight: `dashed 1px ${varAlpha(theme.vars.palette.grey['500Channel'], 0.2)}`,
@@ -163,7 +163,7 @@ function PlanCard({ plan, sx, ...other }: PlanCardProps) {
         ]}
         {...other}
       >
-        {plan.license === 'Plus' && renderLines()}
+        {plan.license === 'Professional' && renderLines()}
 
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Stack flexGrow={1}>
@@ -184,8 +184,8 @@ function PlanCard({ plan, sx, ...other }: PlanCardProps) {
                   opacity: 0.24,
                   borderRadius: 1,
                   bgcolor: 'error.main',
-                  ...(plan.license === 'Standard' && { bgcolor: 'primary.main' }),
-                  ...(plan.license === 'Plus'&& { bgcolor: 'secondary.main' }),
+                  ...(plan.license === 'Starter' && { bgcolor: 'primary.main' }),
+                  ...(plan.license === 'Professional'&& { bgcolor: 'secondary.main' }),
                 }}
               />
             </m.div>
@@ -212,11 +212,11 @@ function PlanCard({ plan, sx, ...other }: PlanCardProps) {
               sx={{
                 width: 24,
                 height: 24,
-                ...(plan.license === 'Standard' && [1, 2].includes(index) && { display: 'none' }),
+                ...(plan.license === 'Starter' && [1, 2].includes(index) && { display: 'none' }),
               }}
             />
           ))}
-          {plan.license === 'Standard' && (
+          {plan.license === 'Starter' && (
             <Box component={m.span} variants={varFade('in')} sx={{ ml: -1 }}>
               (only)
             </Box>
@@ -247,8 +247,8 @@ function PlanCard({ plan, sx, ...other }: PlanCardProps) {
 
           {plan.options.map((option, index) => {
             const disabled =
-              (plan.license === 'Standard' && [1, 2, 3].includes(index)) ||
-              (plan.license === 'Plus' && [3].includes(index));
+              (plan.license === 'Starter' && [1, 2, 3].includes(index)) ||
+              (plan.license === 'Professional' && [3].includes(index));
 
             return (
               <Box

@@ -1,6 +1,5 @@
 import asyncio
 from openai import AzureOpenAI
-from azure.identity import DefaultAzureCredential
 from app.core.config import get_settings
 from tenacity import retry, stop_after_attempt, wait_exponential
 
@@ -19,7 +18,7 @@ class LegalEmbedder:
         self.client = AzureOpenAI(
             azure_endpoint=endpoint,
             api_version="2024-02-15-preview",
-            azure_ad_token_provider=DefaultAzureCredential().get_token
+            api_key=getattr(settings, 'azure_openai_api_key', None) or None
         )
         self.deployment = deployment
 

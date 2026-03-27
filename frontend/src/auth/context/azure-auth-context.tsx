@@ -170,6 +170,9 @@ export function AzureAuthProvider({ children }: AzureAuthProviderProps) {
             // Set user data directly from response (avoid extra /me call)
             if (data.user) {
               setState({ user: data.user, loading: false });
+              
+              // Redirect to dashboard after successful authentication
+              window.location.href = '/dashboard';
             }
             
             // Clean up URL

@@ -10,11 +10,13 @@ import type { NavMainProps } from './main/nav/types';
 
 export const navData: NavMainProps['data'] = [
   { title: 'Home', path: '/', icon: <Iconify width={22} icon="solar:home-2-bold-duotone" /> },
+  
   {
-    title: 'Components',
-    path: paths.components,
+    title: 'About',
+    path: paths.about,
     icon: <Iconify width={22} icon="solar:atom-bold-duotone" />,
   },
+  
   {
     title: 'Pages',
     path: '/pages',
@@ -25,13 +27,16 @@ export const navData: NavMainProps['data'] = [
         items: [
           { title: 'About us', path: paths.about },
           { title: 'Contact us', path: paths.contact },
+          /*
           { title: 'FAQs', path: paths.faqs },
           { title: 'Pricing', path: paths.pricing },
           { title: 'Payment', path: paths.payment },
           { title: 'Maintenance', path: paths.maintenance },
           { title: 'Coming soon', path: paths.comingSoon },
+          */
         ],
       },
+      /*
       {
         subheader: 'Concepts',
         items: [
@@ -65,12 +70,15 @@ export const navData: NavMainProps['data'] = [
           { title: 'Page 500', path: paths.page500 },
         ],
       },
+      */
       { subheader: 'Dashboard', items: [{ title: 'Dashboard', path: CONFIG.auth.redirectPath }] },
     ],
   },
+  
   {
-    title: 'Docs',
+    title: 'Dashboard',
     icon: <Iconify width={22} icon="solar:notebook-bold-duotone" />,
-    path: paths.docs,
+    path: CONFIG.auth.redirectPath ,
   },
+  
 ];

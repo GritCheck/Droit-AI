@@ -1,4 +1,4 @@
-import type { IPackageItem } from 'src/types/package';
+import type { DocumentItem } from 'src/hooks/useDocuments';
 
 import Link from 'next/link';
 import { useBoolean, usePopover } from 'minimal-shared/hooks';
@@ -14,18 +14,16 @@ import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 
-import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomPopover } from 'src/components/custom-popover';
 
-import { DocumentQuickEditForm } from './document-quick-edit-form';
 
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  row: IPackageItem;
+  row: DocumentItem;
   selected: boolean;
   editHref: string;
   onSelectRow: () => void;
@@ -35,7 +33,6 @@ type Props = {
 export function DocumentTableRow({ row, selected, editHref, onSelectRow, onDeleteRow }: Props) {
   const menuActions = usePopover();
   const confirmDialog = useBoolean();
-  const quickEditForm = useBoolean();
 
   return (
     <>
@@ -55,42 +52,20 @@ export function DocumentTableRow({ row, selected, editHref, onSelectRow, onDelet
           <Stack>
             <Box sx={{ fontWeight: 600 }}>{row.name}</Box>
             <Box component="span" sx={{ color: 'text.secondary', fontSize: 13 }}>
-              {row.type}
+              Document
             </Box>
           </Stack>
         </TableCell>
-        <TableCell>{row.data_limit}</TableCell>
-        <TableCell>{row.rate_limit}</TableCell>
-        
-
-        <TableCell>
-          <Label
-            variant="soft"
-            color={
-              row.status === 'active'
-                ? 'success'
-                : row.status === 'pending'
-                ? 'warning'
-                : row.status === 'banned'
-                ? 'error'
-                : 'default'
-            }
-          >
-            {row.status}
-          </Label>
+        <TableCell>{row.size.toLocaleString()} bytes</TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+          {new Date(row.created_at).toLocaleDateString()}
         </TableCell>
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.validity_period}</TableCell>
-
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.price}</TableCell>
 
         <TableCell>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Tooltip title="Quick Edit" placement="top" arrow>
-              <IconButton
-                color={quickEditForm.value ? 'inherit' : 'default'}
-                onClick={quickEditForm.onTrue}
-              >
-                <Iconify icon="solar:pen-bold" />
+            <Tooltip title="View" placement="top" arrow>
+              <IconButton color="default">
+                <Iconify icon="solar:eye-bold" />
               </IconButton>
             </Tooltip>
 
@@ -104,12 +79,6 @@ export function DocumentTableRow({ row, selected, editHref, onSelectRow, onDelet
         </TableCell>
       </TableRow>
 
-      <DocumentQuickEditForm
-        currentPackage={row}
-        open={quickEditForm.value}
-        onClose={quickEditForm.onFalse}
-      />
-
       <CustomPopover
         open={menuActions.open}
         anchorEl={menuActions.anchorEl}
@@ -119,8 +88,8 @@ export function DocumentTableRow({ row, selected, editHref, onSelectRow, onDelet
         <MenuList>
           <li>
             <MenuItem component={Link} href={editHref} onClick={menuActions.onClose}>
-              <Iconify icon="solar:pen-bold" />
-              Edit
+              <Iconify icon="solar:eye-bold" />
+              View Details
             </MenuItem>
           </li>
 

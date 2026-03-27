@@ -33,7 +33,7 @@ type Props = CardProps & {
 export function FileDataActivity({ title, subheader, chart, sx, ...other }: Props) {
   const theme = useTheme();
 
-  const [selectedSeries, setSelectedSeries] = useState('Yearly');
+  const [selectedSeries, setSelectedSeries] = useState('Contracts Indexed');
 
   const currentSeries = chart.series.find((i) => i.name === selectedSeries);
 

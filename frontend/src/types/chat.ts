@@ -4,6 +4,23 @@ import type { IDateValue } from './common';
 
 // ----------------------------------------------------------------------
 
+export type Citation = {
+  source: string;
+  page: number;
+  clause: string;
+};
+
+export type ChatRequest = {
+  message: string;
+  document_id?: string;
+};
+
+export type ChatResponse = {
+  answer: string;
+  citations: Citation[];
+  data_points_analyzed: number;
+};
+
 export type IChatAttachment = {
   name: string;
   size: number;

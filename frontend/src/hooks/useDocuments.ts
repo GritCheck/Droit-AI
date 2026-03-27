@@ -6,24 +6,12 @@ import { handleError } from 'src/utils/errorHandler';
 
 import { fetcher, endpoints } from 'src/lib/axios';
 
-// Types for documents data - matching the mock structure
+// Types for documents data - matching backend API response
 export interface DocumentItem {
-  id: string;
-  type: string;
+  id: string; // Using name as id for frontend compatibility
   name: string;
-  data_limit: string;
-  time_limit: string;
-  rate_limit: string;
-  session_timeout: number;
-  idle_timeout: number;
-  price: number;
-  status: string;
-  validity_period: string;
-  features: string;
-  subscribers: number;
-  description: string;
+  size: number;
   created_at: string;
-  updated_at: string;
 }
 
 export interface DocumentFilters {
@@ -126,9 +114,14 @@ export function useDocuments(filters?: DocumentFilters) {
         ? `${endpoints.documents.list}?${params.toString()}`
         : endpoints.documents.list;
       
-      const response: DocumentListResponse = await fetcher(url);
-      setData(response.documents);
-      setTotal(response.total);
+      const response: DocumentItem[] = await fetcher(url);
+      // Add id field using document name for frontend compatibility
+      const documentsWithId = response.map(doc => ({
+        ...doc,
+        id: doc.name, // Use name as id for frontend compatibility
+      }));
+      setData(documentsWithId);
+      setTotal(documentsWithId.length);
     } catch (err) {
       setError(handleError(err, { 
         fallbackMessage: 'Failed to fetch documents',
@@ -159,144 +152,28 @@ export function useDocuments(filters?: DocumentFilters) {
   };
 }
 
-// Hook for document details
-export function useDocument(documentId: string) {
-  const [data, setData] = useState<DocumentItem | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+// TODO: These hooks will be implemented when backend endpoints are available:
+// - useDocument (for document details)
+// - useDocumentStats (for document statistics) 
+// - useDocumentOperations (for delete/reindex operations)
+// - useDocumentsHealth (for health checks)
 
-  const fetchDocument = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const url = endpoints.documents.detail.replace('{id}', documentId);
-      const response: DocumentItem = await fetcher(url);
-      setData(response);
-    } catch (err) {
-      console.error('Failed to fetch document:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch document');
-    } finally {
-      setLoading(false);
-    }
-  }, [documentId]);
-
-  useEffect(() => {
-    if (documentId) {
-      fetchDocument();
-    }
-  }, [documentId, fetchDocument]);
-
-  return {
-    data,
-    loading,
-    error,
-    refetch: fetchDocument,
-  };
-}
-
-// Hook for document statistics
-export function useDocumentStats() {
-  const [data, setData] = useState<DocumentStats | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchStats = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response: DocumentStats = await fetcher(endpoints.documents.stats);
-      setData(response);
-    } catch (err) {
-      console.error('Failed to fetch document stats:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch document stats');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  return {
-    data,
-    loading,
-    error,
-    refetch: fetchStats,
-  };
-}
-
-// Hook for document operations (delete, reindex)
+// Placeholder hook for document operations - not implemented yet
 export function useDocumentOperations() {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
   const deleteDocument = async (documentId: string): Promise<void> => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const url = endpoints.documents.delete.replace('{id}', documentId);
-      await fetcher(url);
-    } catch (err) {
-      console.error('Failed to delete document:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete document');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+    // TODO: Implement when backend delete endpoint is available
+    throw new Error('Delete operation not yet implemented');
   };
 
   const reindexDocument = async (documentId: string): Promise<void> => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const url = endpoints.documents.reindex.replace('{id}', documentId);
-      await fetcher(url);
-    } catch (err) {
-      console.error('Failed to reindex document:', err);
-      setError(err instanceof Error ? err.message : 'Failed to reindex document');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+    // TODO: Implement when backend reindex endpoint is available
+    throw new Error('Reindex operation not yet implemented');
   };
 
   return {
     deleteDocument,
     reindexDocument,
-    loading,
-    error,
+    loading: false,
+    error: null,
   };
-}
-
-// Hook for documents health check
-export function useDocumentsHealth() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchHealth = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetcher(endpoints.documents.health);
-      setData(response);
-    } catch (err) {
-      console.error('Failed to fetch documents health:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch documents health');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHealth();
-  }, []);
-
-  return { data, loading, error, refetch: fetchHealth };
 }

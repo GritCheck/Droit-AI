@@ -9,8 +9,6 @@ import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
 
-import { useIngestionData } from 'src/hooks/useIngestionData';
-
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -18,7 +16,6 @@ import { UploadBox } from 'src/components/upload';
 import { Scrollbar } from 'src/components/scrollbar';
 
 import { FileWidget } from '../../../file-manager/file-widget';
-import { FileUpgrade } from '../../../file-manager/file-upgrade';
 import { FileRecentItem } from '../../../file-manager/file-recent-item';
 import { FileDataActivity } from '../../../file-manager/file-data-activity';
 import { FileManagerPanel } from '../../../file-manager/file-manager-panel';
@@ -28,8 +25,81 @@ import { FileManagerNewFolderDialog } from '../../../file-manager/file-manager-n
 
 // ----------------------------------------------------------------------
 
+// Helper function to convert size strings to bytes
+const parseSizeToBytes = (size: string | number): number => {
+  if (typeof size === 'number') {
+    return size * 1024 * 1024; // Assume MB if number
+  }
+  
+  if (typeof size === 'string') {
+    const match = size.match(/^([\d.]+)(KB|MB|GB)?$/i);
+    if (!match) return 0;
+    
+    const value = parseFloat(match[1]);
+    const unit = (match[2] || 'MB').toUpperCase();
+    
+    switch (unit) {
+      case 'KB': return value * 1024;
+      case 'MB': return value * 1024 * 1024;
+      case 'GB': return value * 1024 * 1024 * 1024;
+      default: return value;
+    }
+  }
+  
+  return 0;
+};
+
+// Static CUAD contract data for development
+const CUAD_DATA = {
+  storage: {
+    totalGB: 37.04,
+    usedPercent: 85,
+    categories: [
+      { name: 'Services Agreements', value: 12.5, icon: '/assets/icons/files/ic-pdf.svg' },
+      { name: 'NDAs', value: 8.2, icon: '/assets/icons/files/ic-zip.svg' },
+      { name: 'Employment Contracts', value: 6.8, icon: '/assets/icons/files/ic-word.svg' },
+      { name: 'License Agreements', value: 9.5, icon: '/assets/icons/files/ic-legal.svg' }
+    ]
+  },
+  summary: {
+    adls: { title: "Knowledge Domains", value: 4, total: 10, icon: "/assets/icons/files/ic-pdf.svg" },
+    docling: { title: "Document Processing", value: 89, total: 128, icon: "/assets/icons/files/ic-tech.svg" },
+    aiSearch: { title: "Vector Indexing", value: 76, total: 94, icon: "/assets/icons/files/ic-txt.svg" }
+  },
+  activity: {
+    chartSeries: [
+      { 
+        name: 'Contracts Indexed', 
+        categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+        data: [
+          { name: 'Jan', data: [12, 19, 8, 15, 22, 18, 25, 14] }
+        ]
+      },
+      { 
+        name: 'Documents Processed', 
+        categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+        data: [
+          { name: 'Jan', data: [8, 15, 12, 9, 18, 22, 16, 20] }
+        ]
+      }
+    ]
+  },
+  folders: [
+    { id: 'termination-clauses', name: 'Termination Clauses', count: 156 },
+    { id: 'confidentiality', name: 'Confidentiality', count: 89 },
+    { id: 'payment-terms', name: 'Payment Terms', count: 67 },
+    { id: 'liability', name: 'Liability', count: 45 }
+  ],
+  recentFiles: [
+    { id: 'services-agreement-2024', name: 'Services Agreement 2024.pdf', type: 'PDF', size: 2.4 },
+    { id: 'nda-template', name: 'NDA Template.docx', type: 'DOCX', size: '156KB' },
+    { id: 'employment-contract', name: 'Employment Contract.pdf', type: 'PDF', size: '1.8MB' },
+    { id: 'license-agreement', name: 'License Agreement.docx', type: 'DOCX', size: '234KB' },
+    { id: 'ip-assignment', name: 'IP Assignment.pdf', type: 'PDF', size: '3.1MB' }
+  ]
+};
+
 export function OverviewFileView() {
-  const { data: ingestionData, loading, error } = useIngestionData();
   const [folderName, setFolderName] = useState('');
   const [files, setFiles] = useState<(File | string)[]>([]);
 
@@ -43,7 +113,7 @@ export function OverviewFileView() {
   const handleCreateNewFolder = useCallback(() => {
     newFolderDialog.onFalse();
     setFolderName('');
-    console.info('CREATE NEW DOMAIN');
+    console.info('CREATE NEW CONTRACT DOMAIN');
   }, [newFolderDialog]);
 
   const handleDrop = useCallback(
@@ -53,34 +123,14 @@ export function OverviewFileView() {
     [files]
   );
 
-  // Show loading state
-  if (loading) {
-    return (
-      <DashboardContent maxWidth="xl">
-        <Box sx={{ p: 3, textAlign: 'center' }}>
-          Loading ingestion data...
-        </Box>
-      </DashboardContent>
-    );
-  }
-
-  // Show error state
-  if (error || !ingestionData) {
-    return (
-      <DashboardContent maxWidth="xl">
-        <Box sx={{ p: 3, textAlign: 'center', color: 'error.main' }}>
-          Error loading ingestion data: {error || 'Unknown error'}
-        </Box>
-      </DashboardContent>
-    );
-  }
-
   const renderStorageOverview = () => (
     <FileStorageOverview
-      total={ingestionData.storage.totalGB}
-      chart={{ series: ingestionData.storage.usedPercent }}
-      data={ingestionData.storage.categories.map(category => ({
-        ...category,
+      total={CUAD_DATA.storage.totalGB}
+      chart={{ series: CUAD_DATA.storage.usedPercent }}
+      data={CUAD_DATA.storage.categories.map(category => ({
+        name: category.name,
+        usedStorage: category.value,
+        filesCount: Math.floor(category.value * 10),
         icon: <Box component="img" src={category.icon} />
       }))}
     />
@@ -94,7 +144,7 @@ export function OverviewFileView() {
     <FileManagerNewFolderDialog
       open={newFolderDialog.value}
       onClose={newFolderDialog.onFalse}
-      title="Domain Configuration"
+      title="Contract Domain Configuration"
       folderName={folderName}
       onChangeFolderName={handleChangeFolderName}
       onCreate={handleCreateNewFolder}
@@ -105,7 +155,7 @@ export function OverviewFileView() {
     <>
       <DashboardContent maxWidth="xl">
         <Typography variant="h4" sx={{ mb: { xs: 3, md: 5 } }}>
-          Knowledge Ingestion Pipeline 📥
+          CUAD Contract Management �
         </Typography>
         
         <Grid container spacing={3}>
@@ -115,55 +165,66 @@ export function OverviewFileView() {
 
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <FileWidget
-              title={ingestionData.summary.adls.title}
-              value={ingestionData.summary.adls.value}
-              total={ingestionData.summary.adls.total}
-              icon={ingestionData.summary.adls.icon}
+              title="Knowledge Domains"
+              value={CUAD_DATA.summary.adls.value}
+              total={CUAD_DATA.summary.adls.total}
+              icon="/assets/icons/files/ic-document.svg"
             />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <FileWidget
-              title={ingestionData.summary.docling.title}
-              value={ingestionData.summary.docling.value}
-              total={ingestionData.summary.docling.total}
-              icon={ingestionData.summary.docling.icon}
+              title="Document Processing"
+              value={CUAD_DATA.summary.docling.value}
+              total={CUAD_DATA.summary.docling.total}
+              icon="/assets/icons/files/ic-pdf.svg"
             />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <FileWidget
-              title={ingestionData.summary.aiSearch.title}
-              value={ingestionData.summary.aiSearch.value}
-              total={ingestionData.summary.aiSearch.total}
-              icon={ingestionData.summary.aiSearch.icon}
+              title="Vector Indexing"
+              value={CUAD_DATA.summary.aiSearch.value}
+              total={CUAD_DATA.summary.aiSearch.total}
+              icon="/assets/icons/files/ic-clinical.svg"
             />
           </Grid>
 
           <Grid size={{ xs: 12, md: 6, lg: 8 }}>
             <FileDataActivity
-              title="Indexing Activity"
+              title="Contract Indexing Activity"
               chart={{
-                series: ingestionData.activity.chartSeries,
+                series: CUAD_DATA.activity.chartSeries,
               }}
             />
 
             <Box sx={{ mt: 5 }}>
               <FileManagerPanel
-                title="Knowledge Domains"
+                title="Contract Categories"
                 link={paths.dashboard.documents.list}
                 onOpen={newFolderDialog.onTrue}
               />
 
               <Scrollbar sx={{ mb: 3, minHeight: 186 }}>
                 <Box sx={{ gap: 3, display: 'flex' }}>
-                  {ingestionData.folders.map((folder) => (
+                  {CUAD_DATA.folders.map((folder) => (
                     <FileManagerFolderItem
                       key={folder.id}
-                      folder={folder}
+                      folder={{
+                        id: folder.id,
+                        name: folder.name,
+                        url: `/contracts/${folder.id}`,
+                        size: folder.count,
+                        type: 'folder',
+                        tags: [],
+                        isFavorited: false,
+                        createdAt: new Date().toISOString(),
+                        modifiedAt: new Date().toISOString(),
+                        shared: null
+                      }}
                       onDelete={() => console.info('DELETE', folder.id)}
                       sx={{
-                        ...(ingestionData.folders.length > 3 && {
+                        ...(CUAD_DATA.folders.length > 3 && {
                           width: 240,
                           flexShrink: 0,
                         }),
@@ -174,16 +235,27 @@ export function OverviewFileView() {
               </Scrollbar>
 
               <FileManagerPanel
-                title="Recently Indexed Knowledge"
+                title="Recently Indexed Contracts"
                 link={paths.dashboard.documents.list}
                 onOpen={newFilesDialog.onTrue}
               />
 
               <Box sx={{ gap: 2, display: 'flex', flexDirection: 'column' }}>
-                {ingestionData.recentFiles.slice(0, 5).map((file) => (
+                {CUAD_DATA.recentFiles.slice(0, 5).map((file) => (
                   <FileRecentItem
                     key={file.id}
-                    file={file}
+                    file={{
+                      id: file.id,
+                      name: file.name,
+                      url: `/contracts/${file.id}`,
+                      type: file.type,
+                      size: parseSizeToBytes(file.size),
+                      tags: [],
+                      isFavorited: false,
+                      createdAt: new Date().toISOString(),
+                      modifiedAt: new Date().toISOString(),
+                      shared: null
+                    }}
                     onDelete={() => console.info('DELETE', file.id)}
                   />
                 ))}
@@ -206,7 +278,7 @@ export function OverviewFileView() {
                   >
                     <Iconify icon="solar:cloud-upload-bold" width={24} />
                     <Typography variant="body2">
-                      Drop documents here for Azure-governed indexing (PDF, DOCX, XLSX)
+                      Drop CUAD contracts here for indexing (PDF, DOCX, XLSX)
                     </Typography>
                   </Box>
                 }
@@ -220,7 +292,6 @@ export function OverviewFileView() {
 
               <Box sx={{ display: { xs: 'none', sm: 'block' } }}>{renderStorageOverview()}</Box>
 
-              <FileUpgrade />
             </Box>
           </Grid>
         </Grid>

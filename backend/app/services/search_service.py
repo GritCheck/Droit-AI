@@ -388,7 +388,7 @@ class GovernedSearchService:
             suggestions = await self._search_client.suggest(
                 search_text=query,
                 suggester_name="sg",
-                top=5,
+                top=10,
                 filter=self._build_security_filter(user_context)
             )
             

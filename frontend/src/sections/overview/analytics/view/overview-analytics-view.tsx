@@ -29,33 +29,33 @@ import { AnalyticsConversionRates } from '../analytics-conversion-rates';
 const ANALYTICS_DATA_MANIFEST = {
   summary: {
     queries: {
-      title: "Total Semantic Queries",
+      title: "Contract Queries Processed",
       percent: 2.6,
-      total: 714000,
+      total: 82,
       icon: `${CONFIG.assetsDir}/assets/icons/glass/ic-glass-search.svg`,
       categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
       series: [22, 8, 35, 50, 82, 84, 77, 12]
     },
     indexes: {
-      title: "Active Vector Indexes",
+      title: "CUAD Contracts Indexed",
       percent: -0.1,
-      total: 1352831,
+      total: 510,
       color: "secondary" as const,
       icon: `${CONFIG.assetsDir}/assets/icons/glass/ic-glass-database.svg`,
       categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
       series: [56, 47, 40, 62, 73, 30, 23, 54]
     },
     storage: {
-      title: "Knowledge Base Size (MB)",
+      title: "Contract Database Size (MB)",
       percent: 2.8,
-      total: 1723315,
+      total: 37.04,
       color: "warning" as const,
       icon: `${CONFIG.assetsDir}/assets/icons/glass/ic-glass-storage.svg`,
       categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
       series: [40, 70, 50, 28, 70, 75, 7, 64]
     },
     latency: {
-      title: "Avg. Retrieval Latency (ms)",
+      title: "Avg. Contract Retrieval (ms)",
       percent: 3.6,
       total: 234,
       color: "error" as const,
@@ -66,7 +66,7 @@ const ANALYTICS_DATA_MANIFEST = {
   },
   trends: {
     accuracy: {
-      title: "Search Accuracy Trend",
+      title: "Contract Analysis Accuracy",
       subheader: "(+12%) semantic relevance improvement",
       categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
       series: [
@@ -75,18 +75,18 @@ const ANALYTICS_DATA_MANIFEST = {
       ]
     },
     distribution: {
-      title: "Query Distribution by Department",
+      title: "Query Distribution by Clause Type",
       series: [
-        { label: 'Legal', value: 3500 },
-        { label: 'HR', value: 2500 },
-        { label: 'Operations', value: 1500 },
-        { label: 'Finance', value: 500 }
+        { label: 'Termination', value: 3500 },
+        { label: 'Confidentiality', value: 2500 },
+        { label: 'Payment Terms', value: 1500 },
+        { label: 'Liability', value: 500 }
       ]
     },
     retrievalFreq: {
-      title: "Document Type Retrieval Frequency",
+      title: "Contract Type Retrieval Frequency",
       subheader: "(+43%) than last year",
-      categories: ['PDF SOPs', 'Excel Data', 'Legal Docs', 'Policy Memos'],
+      categories: ['Services Agreements', 'NDAs', 'Employment Contracts', 'License Agreements'],
       series: [
         { name: '2022', data: [44, 55, 41, 64, 22] },
         { name: '2023', data: [53, 32, 33, 52, 13] }
@@ -95,7 +95,7 @@ const ANALYTICS_DATA_MANIFEST = {
   },
   radar: {
     modelConfidence: {
-      title: "Model Confidence Radar",
+      title: "Contract Analysis Confidence",
       categories: ['Groundedness', 'Coherence', 'Relevance', 'Safety', 'Fluency'],
       series: [
         { name: 'Series 1', data: [80, 50, 30, 40, 100, 20] },
@@ -106,16 +106,16 @@ const ANALYTICS_DATA_MANIFEST = {
   },
   logs: {
     auditEvents: {
-      title: "Recent System Audit Events"
+      title: "Recent Contract Processing Events"
     },
     pipelineStatus: {
-      title: "Ingestion Pipeline Status"
+      title: "Contract Ingestion Pipeline Status"
     },
     serviceHealth: {
       title: "Azure Service Health"
     },
     tasks: {
-      title: "Governance To-Do List"
+      title: "Contract Governance Tasks"
     }
   }
 };
@@ -124,7 +124,7 @@ export function OverviewAnalyticsView() {
   return (
     <DashboardContent maxWidth="xl">
       <Typography variant="h4" sx={{ mb: { xs: 3, md: 5 } }}>
-        Search & Intelligence Insights �
+        CUAD Contract Analytics & Intelligence Insights
       </Typography>
 
       <Grid container spacing={3}>

@@ -69,120 +69,165 @@ export function OverviewAppView() {
         {/* --- Summary Stats --- */}
         <Grid size={{ xs: 12, md: 4 }}>
           <AppWidgetSummary
-            title="Uptime"
-            percent={dashboardData.stats.uptime?.percent || 0}
-            total={dashboardData.stats.uptime?.total || 100}
+            title="Contracts Audited"
+            percent={100}
+            // total={dashboardData.summary.total_contracts_audited}
+            total={510}
             chart={{
-              categories: dashboardData.stats.uptime?.categories || [],
-              series: dashboardData.stats.uptime?.series || [],
+              categories: [],
+              series: [],
             }}
           />
         </Grid>
 
         <Grid size={{ xs: 12, md: 4 }}>
           <AppWidgetSummary
-            title="Latency"
-            percent={dashboardData.stats.latency?.percent || 0}
-            total={dashboardData.stats.latency?.total || 1000}
-            chart={{
-              colors: [theme.palette.warning.main],
-              categories: dashboardData.stats.latency?.categories || [],
-              series: dashboardData.stats.latency?.series || [],
-            }}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          <AppWidgetSummary
-            title="Compliance"
-            percent={dashboardData.stats.compliance?.percent || 0}
-            total={dashboardData.stats.compliance?.total || 100}
+            title="Index Storage"
+            percent={dashboardData.summary.audit_success_rate}
+            total={(37.04/1600000)*100}
             chart={{
               colors: [theme.palette.success.main],
-              categories: dashboardData.stats.compliance?.categories || [],
-              series: dashboardData.stats.compliance?.series || [],
+              categories: [],
+              series: [],
             }}
           />
         </Grid>
 
-        {/* --- Charts --- */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          <AppWidgetSummary
+            title="Groundedness Rate"
+            percent={dashboardData.summary.groundedness_rate}
+            total={100}
+            chart={{
+              colors: [theme.palette.info.main],
+              categories: [],
+              series: [],
+            }}
+          />
+        </Grid>
+
+        {/* --- Risk Alerts --- */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          <AppWidgetSummary
+            title="High Risk Clauses"
+            percent={100}
+            total={dashboardData.risk_alerts.high_risk_clauses_detected}
+            chart={{
+              colors: [theme.palette.error.main],
+              categories: [],
+              series: [],
+            }}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 4 }}>
+          <AppWidgetSummary
+            title="Compliance Issues"
+            percent={100}
+            total={dashboardData.risk_alerts.compliance_issues}
+            chart={{
+              colors: [theme.palette.warning.main],
+              categories: [],
+              series: [],
+            }}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 4 }}>
+          <AppWidgetSummary
+            title="Critical Findings"
+            percent={100}
+            total={dashboardData.risk_alerts.critical_findings}
+            chart={{
+              colors: [theme.palette.error.dark],
+              categories: [],
+              series: [],
+            }}
+          />
+        </Grid>
+
+        {/* --- Performance Metrics --- */}
         <Grid size={{ xs: 12, md: 6, lg: 4 }}>
           <AppCurrentDownload
-            title="Resource Distribution"
+            title="Doc Distribution"
             chart={{
-              // API provides { label, value }, which matches AppCurrentDownload
-              series: dashboardData.charts.distribution.series,
+              series: [
+                { label: 'Efficiency Score', value: dashboardData.performance_metrics.cost_efficiency_score },
+                { label: 'Token Utilization', value: dashboardData.performance_metrics.token_utilization_rate },
+              ],
             }}
           />
         </Grid>
 
         <Grid size={{ xs: 12, md: 6, lg: 8 }}>
           <AppAreaInstalled
-            title="Query Volume"
-            subheader="System performance over time"
+            title="Daily Audit Trends"
+            subheader="Contract audits over the last 7 days"
             chart={{
-              categories: dashboardData.charts.volume.categories,
-              // Map VolumeSeries[] to the nested structure Apex expects
-              series: dashboardData.charts.volume.series.map((s) => ({
-                name: s.name,
-                data: [{ name: s.name, data: s.data.map(d => typeof d === 'number' ? d : d.value) }],
-              })),
+              categories: dashboardData.trend_analysis.daily_audits.map(d => d.date),
+              series: [{
+                name: 'Daily Audits',
+                data: [{ name: 'Daily Audits', data: dashboardData.trend_analysis.daily_audits.map(d => d.count || 0) }],
+              }],
             }}
           />
         </Grid>
 
-        {/* --- Audit Table --- */}
+        {/* --- Compliance Breakdown --- */}
         <Grid size={{ xs: 12, lg: 8 }}>
           <AppNewInvoice
-            title="Governance Audit Trail"
-            tableData={dashboardData.audit.rows?.map((row: any) => ({
-              id: row.id,
-              category: row.category,
-              price: row.score || 0,
-              status: row.status,
-              invoiceNumber: row.id,
-            })) || []}
+            title="Compliance Breakdown"
+            tableData={[
+              { id: '1', category: 'Fully Compliant', price: dashboardData.compliance_breakdown.fully_compliant, status: 'success', invoiceNumber: 'FC-001' },
+              { id: '2', category: 'Partially Compliant', price: dashboardData.compliance_breakdown.partially_compliant, status: 'warning', invoiceNumber: 'PC-001' },
+              { id: '3', category: 'Non-Compliant', price: dashboardData.compliance_breakdown.non_compliant, status: 'error', invoiceNumber: 'NC-001' },
+            ]}
             headCells={[
-              { id: 'id', label: 'Request ID' },
-              { id: 'category', label: 'User Group' },
-              { id: 'price', label: 'Safety Score' },
-              { id: 'status', label: 'Status' },
+              { id: 'invoiceNumber', label: 'Category ID' },
+              { id: 'category', label: 'Compliance Status' },
+              { id: 'price', label: 'Count' },
+              { id: 'status', label: 'Risk Level' },
               { id: '', label: '' },
             ]}
           />
         </Grid>
 
         <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <AppTopRelated title="Recent Documents" list={dashboardData.recent.list} />
+          <AppTopRelated 
+            title="Groundedness Trend" 
+            list={dashboardData.trend_analysis.groundedness_trend.slice(0, 5).map(item => ({
+              id: item.date,
+              date: item.date,
+              score: item.score || 0,
+              category: 'Performance',
+              image: null,
+              postedAt: item.date,
+            }))} 
+          />
         </Grid>
 
         {/* --- Bottom Widgets --- */}
         <Grid size={{ xs: 12 }}>
           <Box sx={{ gap: 3, display: 'flex', flexDirection: 'row' }}>
             <AppWidget
-              title="Index Optimization"
-              total={dashboardData.widgets.indexing?.total || 0}
-              icon="solar:user-rounded-bold"
+              title="Avg Response Time"
+              total={Math.round(dashboardData.performance_metrics.avg_response_time_ms)}
+              icon="solar:timer-bold"
               chart={{
-                // Ensure series is a single number, not an array
-                series: Array.isArray(dashboardData.widgets.indexing?.series) 
-                   ? dashboardData.widgets.indexing.series[0] 
-                   : dashboardData.widgets.indexing?.series || 0,
-                colors: [theme.palette.info.light], // Colors must be an array
+                series: dashboardData.performance_metrics.avg_response_time_ms / 100,
+                colors: [theme.palette.info.light],
               }}
             />
 
             <AppWidget
-              title="Azure Tokens"
-              total={dashboardData.widgets.azureTokens?.total || 0}
-              icon="fluent:mail-24-filled"
+              title="Avg Cost per Audit"
+              total={dashboardData.summary.avg_cost_per_audit_tokens}
+              icon="fluent:money-24-filled"
               chart={{
-                series: Array.isArray(dashboardData.widgets.azureTokens?.series)
-                   ? dashboardData.widgets.azureTokens.series[0]
-                   : dashboardData.widgets.azureTokens?.series || 0,
-                colors: [theme.palette.info.main],
+                series: dashboardData.summary.avg_cost_per_audit_tokens / 2,
+                colors: [theme.palette.warning.main],
               }}
-              sx={{ bgcolor: 'info.dark', [`& .${svgColorClasses.root}`]: { color: 'info.light' } }}
+              sx={{ bgcolor: 'warning.dark', [`& .${svgColorClasses.root}`]: { color: 'warning.light' } }}
             />
           </Box>
         </Grid>
