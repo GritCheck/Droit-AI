@@ -13,7 +13,7 @@ import axios, { fetcher, endpoints } from 'src/lib/axios';
 
 const enableServer = true;
 
-const CHAT_ENDPOINT = endpoints.chat;
+const CHAT_ENDPOINT = endpoints.chat.query;
 
 const swrOptions: SWRConfiguration = {
   revalidateIfStale: enableServer,
@@ -168,8 +168,10 @@ export async function clickConversation(conversationId: string) {
    */
 
   mutate(
-    [CHAT_ENDPOINT, { params: { endpoint: 'conversations' } }],
-    (currentData) => {
+    `${CHAT_ENDPOINT}/conversations`,
+    (currentData: ConversationsData | undefined) => {
+      if (!currentData) return { conversations: [] };
+      
       const currentConversations: IChatConversation[] = currentData.conversations;
 
       const conversations = currentConversations.map((conversation: IChatConversation) =>

@@ -51,7 +51,6 @@
     "@mui/x-date-pickers": "^7.23.3",
     "@mui/x-tree-view": "^7.23.2",
     "@react-pdf/renderer": "^4.1.6",
-    "@supabase/supabase-js": "^2.47.10",
     "@tiptap/core": "^2.11.0",
     "@tiptap/extension-code-block": "^2.11.0",
     "@tiptap/extension-code-block-lowlight": "^2.11.0",

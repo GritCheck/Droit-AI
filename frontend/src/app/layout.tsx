@@ -20,19 +20,11 @@ import { SettingsDrawer, defaultSettings, SettingsProvider } from 'src/component
 
 import { AuthProvider as JwtAuthProvider } from 'src/auth/context/jwt';
 import { AzureAuthProvider } from 'src/auth/context/azure-auth-context';
-import { AuthProvider as Auth0AuthProvider } from 'src/auth/context/auth0';
-import { AuthProvider as AmplifyAuthProvider } from 'src/auth/context/amplify';
-import { AuthProvider as SupabaseAuthProvider } from 'src/auth/context/supabase';
-import { AuthProvider as FirebaseAuthProvider } from 'src/auth/context/firebase';
 
 // ----------------------------------------------------------------------
 
 const AuthProvider =
   (CONFIG.auth.method === 'azure' && AzureAuthProvider) ||
-  (CONFIG.auth.method === 'amplify' && AmplifyAuthProvider) ||
-  (CONFIG.auth.method === 'firebase' && FirebaseAuthProvider) ||
-  (CONFIG.auth.method === 'supabase' && SupabaseAuthProvider) ||
-  (CONFIG.auth.method === 'auth0' && Auth0AuthProvider) ||
   JwtAuthProvider;
 
 export const viewport: Viewport = {
