@@ -1,5 +1,10 @@
 # DroitAI - CUAD Legal Contract Analysis System
 
+<div align="center">
+  <img src="docs/arch.png" alt="DroitAI Logo">
+</div>
+
+
 🏆 **Azure Innovation Challenge Entry** - Enterprise-grade legal contract analysis platform powered by CUAD (Contract Understanding Atticus Dataset) strategy and Azure AI.
 
 A production-ready RAG system specialized for **legal contract analysis** with enterprise security, built for Azure with Next.js frontend and FastAPI backend.
@@ -13,7 +18,9 @@ A production-ready RAG system specialized for **legal contract analysis** with e
 - **Legal Intelligence**: Semantic search optimized for legal terminology
 
 ## �🏗️ Architecture
-
+<div align="center">
+  <img src="docs/arch.png" alt="DroitAI Architecture">
+</div>
 DroitAI is a **full-stack legal AI system** with separate frontend and backend services:
 
 ### Frontend (Next.js)
@@ -44,7 +51,7 @@ DroitAI is a **full-stack legal AI system** with separate frontend and backend s
 - **Legal Analyzer**: Microsoft analyzer optimized for legal terminology
 - **Semantic Search**: Legal context-aware search and ranking
 
-## 🚀 Quick Start (Innovation Challenge Ready)
+## 🚀 Quick Start
 
 ### Prerequisites
 - Azure CLI installed
@@ -101,11 +108,6 @@ npm run dev
 cd backend
 pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Docker Development
-```bash
-docker-compose -f docker-compose.dev.yml up --build
 ```
 
 ## 📁 Project Structure
@@ -254,6 +256,32 @@ azd up
 - [📋 CUAD Data Guide](./data/cuad-contracts/README.md) - Contract data structure
 - [🔧 Deployment Guide](./DEPLOYMENT.md) - Step-by-step deployment
 - [📖 API Documentation](https://\<backend-app-name\>.azurewebsites.net/docs) - Interactive API docs
+
+## 📚 Architecture Documentation
+
+### Security & Authentication
+- **[Azure AD App Registration Setup](docs/azure-ad-app-registration.md)** - Configure frontend and backend app registrations
+- **[Permission Grants & Admin Consent](docs/permission-grants.md)** - Required API permissions and consent workflow
+- **[OBO Token Flow Architecture](docs/obo-token-flow.md)** - On-Behalf-Of token exchange between services
+- **[Managed Identity Configuration](docs/managed-identity.md)** - Keyless authentication setup
+
+### Infrastructure & Deployment
+- **[Azure Architecture Overview](docs/azure-architecture.md)** - Complete infrastructure diagram and components
+- **[Bicep Infrastructure as Code](docs/bicep-infrastructure.md)** - Infrastructure deployment and customization
+- **[Networking & Security](docs/network-security.md)** - VNet, private endpoints, and security groups
+- **[Monitoring & Observability](docs/monitoring.md)** - Application Insights and Log Analytics setup
+
+### Application Architecture
+- **[Microservices Design](docs/microservices.md)** - Frontend, backend, and AI service architecture
+- **[Data Processing Pipeline](docs/data-pipeline.md)** - Document ingestion and vector indexing
+- **[Legal AI Integration](docs/legal-ai-integration.md)** - OpenAI, Document Intelligence, and Content Safety
+- **[CUAD Dataset Integration](docs/cuad-integration.md)** - Legal clause analysis and red flag detection
+
+### Development & Operations
+- **[Local Development Setup](docs/local-development.md)** - Docker, environment configuration, and debugging
+- **[Testing Strategy](docs/testing.md)** - Unit tests, integration tests, and legal AI validation
+- **[Deployment Automation](docs/deployment-automation.md)** - AZD workflows and CI/CD pipeline
+- **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
 
 ## 🤝 Contributing
 
