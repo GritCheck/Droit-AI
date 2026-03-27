@@ -1,7 +1,7 @@
 # DroitAI - CUAD Legal Contract Analysis System
 
 <div align="center">
-  <img src="docs/arch.png" alt="DroitAI Logo">
+  <img src="docs/arch1.png" alt="DroitAI Logo">
 </div>
 
 

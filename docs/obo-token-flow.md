@@ -32,6 +32,9 @@ The OBO flow allows a backend service to call another service on behalf of the s
 ```
 
 ## Token Flow Sequence
+<div align="center">
+  <img src="./applogincomponents.png" alt="OBO Token flow">
+</div>
 
 ### 1. User Authentication (Frontend)
 
