@@ -23,7 +23,7 @@ export function AzureAuthGuard({ children, fallback }: AzureAuthGuardProps) {
   }
 
   if (!authenticated) {
-    router.push(paths.auth.signIn);
+    router.push(paths.auth.azure.signIn);
     return fallback || null;
   }
 

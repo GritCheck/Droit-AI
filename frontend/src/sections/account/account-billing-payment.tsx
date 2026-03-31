@@ -1,6 +1,8 @@
 import type { CardProps } from '@mui/material/Card';
 import type { IPaymentCard } from 'src/types/common';
 
+// import { PaymentCardItem } from '../payment/payment-card-item';
+// import { PaymentNewCardForm } from '../payment/payment-new-card-form';
 import { useBoolean } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
@@ -13,9 +15,6 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 
 import { Iconify } from 'src/components/iconify';
-
-import { PaymentCardItem } from '../payment/payment-card-item';
-import { PaymentNewCardForm } from '../payment/payment-new-card-form';
 
 // ----------------------------------------------------------------------
 
@@ -52,9 +51,9 @@ export function AccountBillingPayment({ cards, sx, ...other }: Props) {
             gridTemplateColumns: { xs: 'repeat(1, 1fr)', md: 'repeat(2, 1fr)' },
           }}
         >
-          {cards.map((card) => (
+          {/* {cards.map((card) => (
             <PaymentCardItem key={card.id} card={card} />
-          ))}
+          ))} */}
         </Box>
       </Card>
 
@@ -62,7 +61,7 @@ export function AccountBillingPayment({ cards, sx, ...other }: Props) {
         <DialogTitle> Add new card </DialogTitle>
 
         <DialogContent sx={{ overflow: 'unset' }}>
-          <PaymentNewCardForm />
+          {/* <PaymentNewCardForm /> */}
         </DialogContent>
 
         <DialogActions>

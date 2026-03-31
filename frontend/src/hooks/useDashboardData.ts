@@ -72,7 +72,7 @@ export function useDashboardData(): UseDashboardDataReturn {
       setLoading(true);
       setError(null);
       
-      const response = await fetcher(endpoints.dashboard.managementOverview);
+      const response = await fetcher([endpoints.dashboard.managementOverview, {}]);
       setData(response);
     } catch (err) {
       setError(handleError(err, { 

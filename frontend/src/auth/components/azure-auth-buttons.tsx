@@ -4,7 +4,7 @@ import { Button } from '@mui/material';
 
 import { Iconify } from 'src/components/iconify';
 
-import { useSignIn } from '../hooks/azure-auth-hooks';
+import { useSignIn, useSignOut } from '../hooks/azure-auth-hooks';
 
 // ----------------------------------------------------------------------
 

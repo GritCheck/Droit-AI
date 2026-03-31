@@ -1,20 +1,16 @@
 import { useFormContext } from 'react-hook-form';
+// import { AddressListDialog } from '../address';
 import { useBoolean } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
-import { _addressBooks } from 'src/_mock';
-
 import { Iconify } from 'src/components/iconify';
-
-import { AddressListDialog } from '../address';
 
 import type { NewInvoiceSchemaType } from './invoice-new-edit-form';
 
@@ -92,7 +88,7 @@ export function InvoiceNewEditAddress() {
         </Stack>
       </Stack>
 
-      <AddressListDialog
+      {/* <AddressListDialog
         title="Customers"
         open={addressForm.value}
         onClose={addressForm.onFalse}
@@ -108,9 +104,9 @@ export function InvoiceNewEditAddress() {
             New
           </Button>
         }
-      />
+      /> */}
 
-      <AddressListDialog
+      {/* <AddressListDialog
         title="Customers"
         open={addressTo.value}
         onClose={addressTo.onFalse}
@@ -126,7 +122,7 @@ export function InvoiceNewEditAddress() {
             New
           </Button>
         }
-      />
+      /> */}
     </>
   );
 }

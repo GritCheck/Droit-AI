@@ -14,7 +14,7 @@ import CardHeader from '@mui/material/CardHeader';
 import { Iconify } from 'src/components/iconify';
 import { CustomPopover } from 'src/components/custom-popover';
 
-import { AddressItem, AddressNewForm } from '../address';
+// import { AddressItem, AddressNewForm } from '../address';
 
 // ----------------------------------------------------------------------
 
@@ -83,11 +83,13 @@ export function AccountBillingAddress({ addressBook }: Props) {
   );
 
   const renderNewAddressForm = () => (
-    <AddressNewForm
-      open={newAddressForm.value}
-      onClose={newAddressForm.onFalse}
-      onCreate={handleAddNewAddress}
-    />
+    <div>
+      {/* <AddressNewForm
+        open={newAddressForm.value}
+        onClose={newAddressForm.onFalse}
+        onCreate={handleAddNewAddress}
+      /> */}
+    </div>
   );
 
   return (
@@ -108,7 +110,7 @@ export function AccountBillingAddress({ addressBook }: Props) {
         />
 
         <Stack spacing={2.5} sx={{ p: 3 }}>
-          {addressBook.map((address) => (
+          {/* {addressBook.map((address) => (
             <AddressItem
               variant="outlined"
               key={address.id}
@@ -125,7 +127,7 @@ export function AccountBillingAddress({ addressBook }: Props) {
               }
               sx={{ p: 2.5, borderRadius: 1 }}
             />
-          ))}
+          ))} */}
         </Stack>
       </Card>
 

@@ -33,7 +33,7 @@ export default axiosInstance;
 
 // ----------------------------------------------------------------------
 
-export async function fetcher(args: string | [string, AxiosRequestConfig], p0: { method: string; body: string; }): Promise<any> {
+export async function fetcher(args: string | [string, AxiosRequestConfig]): Promise<any> {
   try {
     const [url, config] = Array.isArray(args) ? args : [args];
 
@@ -192,50 +192,23 @@ export const endpoints = {
     managementOverview: '/api/v1/dashboard/management-overview',
     kustoQueries: '/api/v1/dashboard/kusto-queries'
   },
+  ingestion: {
+    overview: '/api/v1/ingestion/overview',
+    summary: '/api/v1/ingestion/summary',
+    storage: '/api/v1/ingestion/storage',
+    activity: '/api/v1/ingestion/activity'
+  },
+  security: {
+    rlsPolicies: '/api/v1/security/rls-policies',
+    userClearance: '/api/v1/security/user-clearance',
+    health: '/api/v1/security/health',
+    groups: '/api/v1/security/groups'
+  },
+  responsible: {
+    overview: '/api/v1/responsible/overview',
+    summary: '/api/v1/responsible/summary',
+    performance: '/api/v1/responsible/performance',
+    safety: '/api/v1/responsible/safety'
+  }
 
-  // TODO: These endpoints are not yet implemented in backend - will be added later
-  // kanban: '/api/kanban',
-  // calendar: '/api/calendar',
-  // auth: { me: '/auth/me', signIn: '/auth/login', signUp: '/auth/register' },
-  // mail: { list: '/api/mail/list', details: '/api/mail/details', labels: '/api/mail/labels' },
-  // post: {
-  //   list: '/api/post/list',
-  //   details: '/api/post/details',
-  //   latest: '/api/post/latest',
-  //   search: '/api/post/search',
-  // },
-  // dashboard: {
-  //   overview: '/api/v1/dashboard/overview',
-  //   stats: '/api/v1/dashboard/stats',
-  //   charts: '/api/v1/dashboard/charts',
-  //   widgets: '/api/v1/dashboard/widgets',
-  //   health: '/api/v1/dashboard/health',
-  // },
-  // ingestion: {
-  //   overview: '/api/v1/ingestion/overview',
-  //   summary: '/api/v1/ingestion/summary',
-  //   storage: '/api/v1/ingestion/storage',
-  //   activity: '/api/v1/ingestion/activity',
-  //   health: '/api/v1/ingestion/health',
-  // },
-  // responsible: {
-  //   overview: '/api/v1/responsible/overview',
-  //   summary: '/api/v1/responsible/summary',
-  //   performance: '/api/v1/responsible/performance',
-  //   safety: '/api/v1/responsible/safety',
-  //   health: '/api/v1/responsible/health',
-  // },
-  // security: {
-  //   groups: '/api/v1/security/groups',
-  //   rlsPolicies: '/api/v1/security/rls-policies',
-  //   userClearance: '/api/v1/security/user-clearance',
-  //   health: '/api/v1/security/health',
-  // },
-  // documents: {
-  //   detail: '/api/v1/documents/{id}',
-  //   delete: '/api/v1/documents/{id}',
-  //   reindex: '/api/v1/documents/{id}/reindex',
-  //   stats: '/api/v1/documents/stats/overview',
-  //   health: '/api/v1/documents/health',
-  // },
 };

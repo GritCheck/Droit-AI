@@ -17,8 +17,8 @@ import { PlanFreeIcon, PlanStarterIcon, PlanPremiumIcon } from 'src/assets/icons
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
-import { AddressListDialog } from '../address';
-import { PaymentCardListDialog } from '../payment/payment-card-list-dialog';
+// import { AddressListDialog } from '../address';
+// import { PaymentCardListDialog } from '../payment/payment-card-list-dialog';
 
 // ----------------------------------------------------------------------
 
@@ -210,15 +210,15 @@ export function AccountBillingPlan({ cardList, addressBook, plans }: Props) {
         </Box>
       </Card>
 
-      <PaymentCardListDialog
+      {/* <PaymentCardListDialog
         list={cardList}
         open={openCards.value}
         onClose={openCards.onFalse}
         selected={(selectedId: string) => selectedCard?.id === selectedId}
         onSelect={handleSelectCard}
-      />
+      /> */}
 
-      <AddressListDialog
+      {/* <AddressListDialog
         list={addressBook}
         open={openAddress.value}
         onClose={openAddress.onFalse}
@@ -233,7 +233,7 @@ export function AccountBillingPlan({ cardList, addressBook, plans }: Props) {
             New
           </Button>
         }
-      />
+      /> */}
     </>
   );
 }
