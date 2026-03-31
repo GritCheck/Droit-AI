@@ -1,8 +1,6 @@
 import type { CardProps } from '@mui/material/Card';
 import type { IPaymentCard } from 'src/types/common';
 
-// import { PaymentCardItem } from '../payment/payment-card-item';
-// import { PaymentNewCardForm } from '../payment/payment-new-card-form';
 import { useBoolean } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
