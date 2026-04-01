@@ -253,6 +253,10 @@ azd up
 
 ## 📚 Documentation
 
+### Presentations & Overviews
+- [🎯 DroitAI Presentation](./docs/DroitAI-AI-Powered-Legal-Contract-Analysis.pptx) - Complete project overview and architecture
+
+### Technical Guides
 - [📋 CUAD Data Guide](./data/cuad-contracts/README.md) - Contract data structure
 - [🔧 Deployment Guide](./DEPLOYMENT.md) - Step-by-step deployment
 - [📖 API Documentation](https://\<backend-app-name\>.azurewebsites.net/docs) - Interactive API docs
